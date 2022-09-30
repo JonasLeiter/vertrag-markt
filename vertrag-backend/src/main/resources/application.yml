@@ -1,0 +1,7 @@
+micronaut:
+  application:
+    name: vertragBackend
+netty:
+  default:
+    allocator:
+      max-order: 3
