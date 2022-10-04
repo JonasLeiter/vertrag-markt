@@ -1,5 +1,6 @@
 package de.vkb
 
+import de.vkb.models.Vertrag
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.MediaType
 import io.micronaut.http.annotation.Body

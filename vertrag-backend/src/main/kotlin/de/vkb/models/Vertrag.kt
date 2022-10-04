@@ -1,4 +1,4 @@
-package de.vkb
+package de.vkb.models
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import java.util.Date

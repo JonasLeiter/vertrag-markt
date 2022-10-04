@@ -2,6 +2,7 @@ package de.vkb
 
 import de.vkb.command.VertragCommand
 import de.vkb.kafka.ProducerClient
+import de.vkb.models.Vertrag
 import jakarta.inject.Singleton
 
 @Singleton
