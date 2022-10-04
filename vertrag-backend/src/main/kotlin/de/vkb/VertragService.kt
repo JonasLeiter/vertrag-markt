@@ -1,5 +1,6 @@
 package de.vkb
 
+import de.vkb.command.VertragCommand
 import de.vkb.kafka.ProducerClient
 import jakarta.inject.Singleton
 
@@ -7,7 +8,8 @@ import jakarta.inject.Singleton
 class VertragService(private val producerClient: ProducerClient) {
 
     fun send(vertrag: Vertrag): Vertrag {
-        producerClient.send("Vertrag-123", vertrag)
+        val command = VertragCommand(vertrag)
+        producerClient.send(command.commandId, command)
         return vertrag
     }
 }
