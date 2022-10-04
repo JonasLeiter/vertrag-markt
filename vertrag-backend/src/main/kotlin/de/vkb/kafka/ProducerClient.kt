@@ -1,6 +1,6 @@
 package de.vkb.kafka
 
-import de.vkb.command.VertragCommand
+import de.vkb.command.ErstelleVertrag
 import io.micronaut.configuration.kafka.annotation.KafkaClient
 import io.micronaut.configuration.kafka.annotation.KafkaKey
 import io.micronaut.configuration.kafka.annotation.Topic
@@ -9,5 +9,5 @@ import io.micronaut.configuration.kafka.annotation.Topic
 interface ProducerClient {
 
     @Topic("learning-vertrag-command")
-    fun send(@KafkaKey key: String, value: VertragCommand)
+    fun send(@KafkaKey key: String, value: ErstelleVertrag)
 }

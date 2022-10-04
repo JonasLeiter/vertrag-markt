@@ -1,4 +1,4 @@
-package de.vkb
+package de.vkb.app
 
 import de.vkb.models.Vertrag
 import io.micronaut.http.HttpResponse

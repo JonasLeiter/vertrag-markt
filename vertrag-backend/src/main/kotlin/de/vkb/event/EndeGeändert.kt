@@ -1,4 +1,4 @@
 package de.vkb.event
 
-class InternalEvent {
+class EndeGeändert {
 }
