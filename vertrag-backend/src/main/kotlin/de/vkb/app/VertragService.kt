@@ -10,36 +10,58 @@ import java.util.*
 @Singleton
 class VertragService(private val commandProducer: CommandProducer) {
 
-    fun vertragErstellen(vertrag: Vertrag) {
+    fun vertragErstellen(payload: ErstelleVertragPayload): Vertrag {
 
         val commandId = UUID.randomUUID().toString()
         val vertragId = UUID.randomUUID().toString()
 
-        val command = VertragCommand(
+        val command = ErstelleVertrag(
             id = commandId,
             aggregateIdentifier = AggregateIdentifier(
                 id = vertragId,
                 type = "Vertrag"
             ),
-            payload = vertrag,
+            payload = payload,
             type = CommandType.ERSTELLE_VERTRAG
+        )
+
+        commandProducer.send(command.id, command)
+
+        return Vertrag(id = vertragId, bezeichnung = payload.bezeichnung, beginn = payload.beginn, ende = payload.ende)
+    }
+
+    fun beginnAendern(payload: AendereBeginnPayload) {
+
+        val commandId = UUID.randomUUID().toString()
+
+        val command = AendereBeginn(
+            id = commandId,
+            aggregateIdentifier = AggregateIdentifier(
+                id = payload.id,
+                type = "Vertrag"
+            ),
+            payload = payload,
+            type = CommandType.AENDERE_BEGINN
         )
 
         commandProducer.send(command.id, command)
     }
 
-    fun beginnAendern(vertrag: Vertrag) {
+    fun endeAendern(payload: AendereEndePayload) {
 
-        // todo
-        // val command = VertragCommand()
-        // commandProducer.send(command.id, command)
-    }
+        val commandId = UUID.randomUUID().toString()
 
-    fun endeAendern(vertrag: Vertrag) {
+        val command = AendereEnde(
+            id = commandId,
+            aggregateIdentifier = AggregateIdentifier(
+                id = payload.id,
+                type = "Vertrag"
+            ),
+            payload = payload,
+            type = CommandType.AENDERE_ENDE
+        )
 
-//        todo
-//        val command = VertragCommand()
-//        commandProducer.send(command.id, command)
+        commandProducer.send(command.id, command)
     }
 
 }

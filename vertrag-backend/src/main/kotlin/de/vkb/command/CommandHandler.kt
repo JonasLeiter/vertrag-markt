@@ -9,20 +9,20 @@ import io.micronaut.configuration.kafka.annotation.Topic
 @KafkaListener(offsetReset = OffsetReset.EARLIEST)
 class CommandHandler(private val internalEventProducer: InternalEventProducer, private val commandValidator: CommandValidator) {
 
-    @Topic("learning-vertrag-command")
-    fun receive(command: VertragCommand) {
-        if (commandValidator.validate(command).valid) {
-
-            // transformation to event
-            val internalEvent = VertragInternalEvent(
-                id = command.id,
-                aggregateIdentifier = command.aggregateIdentifier.copy(),
-                payload = command.payload.copy(),
-                type = EventType.VERTRAG_ERSTELLT
-            )
-            internalEventProducer.send(internalEvent.aggregateIdentifier.id, internalEvent)
-        }
-    }
+//    @Topic("learning-vertrag-command")
+//    fun receive(command: ErstelleVertrag) {
+//        if (commandValidator.validate(command).valid) {
+//
+//            // transformation to event
+//            val internalEvent = VertragInternalEvent(
+//                id = command.id,
+//                aggregateIdentifier = command.aggregateIdentifier.copy(),
+//                payload = command.payload.copy(),
+//                type = EventType.VERTRAG_ERSTELLT
+//            )
+//            internalEventProducer.send(internalEvent.aggregateIdentifier.id, internalEvent)
+//        }
+//    }
 }
 
 

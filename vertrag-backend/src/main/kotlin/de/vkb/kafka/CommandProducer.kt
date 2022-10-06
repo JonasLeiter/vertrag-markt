@@ -1,7 +1,6 @@
 package de.vkb.kafka
 
 import de.vkb.command.Command
-import de.vkb.command.VertragCommand
 import io.micronaut.configuration.kafka.annotation.KafkaClient
 import io.micronaut.configuration.kafka.annotation.KafkaKey
 import io.micronaut.configuration.kafka.annotation.Topic
@@ -10,5 +9,5 @@ import io.micronaut.configuration.kafka.annotation.Topic
 interface CommandProducer {
 
     @Topic("learning-vertrag-command")
-    fun send(@KafkaKey key: String, value: VertragCommand)
+    fun send(@KafkaKey key: String, value: Command)
 }
