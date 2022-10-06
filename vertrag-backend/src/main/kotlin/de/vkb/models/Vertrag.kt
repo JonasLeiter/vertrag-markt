@@ -1,12 +1,10 @@
 package de.vkb.models
 
-import com.fasterxml.jackson.annotation.JsonFormat
 import java.util.*
 
 data class Vertrag(
-    val bezeichnung: String,
-    @field:JsonFormat(pattern = "yyyy-MM-dd")
-    val beginn: Date,
-    @field:JsonFormat(pattern = "yyyy-MM-dd")
-    val ende: Date) {
-}
+    var id: String,
+    var bezeichnung: String,
+    var beginn: Date,
+    var ende: Date
+)

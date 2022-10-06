@@ -1,29 +1,45 @@
 package de.vkb.app
 
-import de.vkb.command.ErstelleVertrag
+import de.vkb.command.*
 import de.vkb.common.AggregateIdentifier
-import de.vkb.kafka.ProducerClient
+import de.vkb.kafka.CommandProducer
 import de.vkb.models.Vertrag
 import jakarta.inject.Singleton
 import java.util.*
 
 @Singleton
-class VertragService(private val producerClient: ProducerClient) {
+class VertragService(private val commandProducer: CommandProducer) {
 
-    fun send(vertrag: Vertrag) {
+    fun vertragErstellen(vertrag: Vertrag) {
 
         val commandId = UUID.randomUUID().toString()
         val vertragId = UUID.randomUUID().toString()
 
-        val command = ErstelleVertrag(
+        val command = VertragCommand(
             id = commandId,
             aggregateIdentifier = AggregateIdentifier(
                 id = vertragId,
                 type = "Vertrag"
             ),
-            payload = vertrag
+            payload = vertrag,
+            type = CommandType.ERSTELLE_VERTRAG
         )
 
-        producerClient.send(command.aggregateIdentifier.id, command)
+        commandProducer.send(command.id, command)
     }
+
+    fun beginnAendern(vertrag: Vertrag) {
+
+        // todo
+        // val command = VertragCommand()
+        // commandProducer.send(command.id, command)
+    }
+
+    fun endeAendern(vertrag: Vertrag) {
+
+//        todo
+//        val command = VertragCommand()
+//        commandProducer.send(command.id, command)
+    }
+
 }

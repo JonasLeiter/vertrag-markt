@@ -1,14 +1,13 @@
 package de.vkb.command
 
 import de.vkb.common.ValidationResult
+import jakarta.inject.Singleton
 
-class CommandValidator {
+@Singleton
+class CommandValidator() {
 
-    fun validate(command: ErstelleVertrag): ValidationResult {
-        if (command.payload.beginn < command.payload.ende) {
-            return ValidationResult(command.id, true)
-
-        }
-        return ValidationResult(command.id, false)
+    fun validate(command: VertragCommand): ValidationResult {
+        return if (command.payload.beginn < command.payload.ende) ValidationResult(command.id, true)
+        else ValidationResult(command.id, false)
     }
 }

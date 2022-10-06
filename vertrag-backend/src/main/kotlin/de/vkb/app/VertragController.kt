@@ -10,9 +10,20 @@ import io.micronaut.http.annotation.Post
 @Controller("/vertrag")
 class VertragController(private val vertragService: VertragService) {
 
-    @Post(produces = [MediaType.APPLICATION_JSON], consumes = [MediaType.APPLICATION_JSON])
-    fun send(@Body vertrag: Vertrag): HttpResponse<Vertrag> {
-        vertragService.send(vertrag)
+    @Post("/erstellen", produces = [MediaType.APPLICATION_JSON], consumes = [MediaType.APPLICATION_JSON])
+    fun vertragErstellen(@Body vertrag: Vertrag): HttpResponse<Vertrag> {
+        vertragService.vertragErstellen(vertrag)
+        return HttpResponse.created(vertrag)
+    }
+
+    @Post("/beginn", produces = [MediaType.APPLICATION_JSON], consumes = [MediaType.APPLICATION_JSON])
+    fun beginnAendern(@Body vertrag: Vertrag): HttpResponse<Vertrag> {
+        vertragService.beginnAendern(vertrag)
+        return HttpResponse.created(vertrag)
+    }
+    @Post("/ende", produces = [MediaType.APPLICATION_JSON], consumes = [MediaType.APPLICATION_JSON])
+    fun endeAendern(@Body vertrag: Vertrag): HttpResponse<Vertrag> {
+        vertragService.endeAendern(vertrag)
         return HttpResponse.created(vertrag)
     }
 }
