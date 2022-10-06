@@ -14,13 +14,13 @@ class CommandHandler(private val internalEventProducer: InternalEventProducer, p
         if (commandValidator.validate(command).valid) {
 
             // transformation to event
-            val event = VertragInternalEvent(
+            val internalEvent = VertragInternalEvent(
                 id = command.id,
                 aggregateIdentifier = command.aggregateIdentifier.copy(),
                 payload = command.payload.copy(),
                 type = EventType.VERTRAG_ERSTELLT
             )
-            internalEventProducer.send(event.aggregateIdentifier.id, event)
+            internalEventProducer.send(internalEvent.aggregateIdentifier.id, internalEvent)
         }
     }
 }
