@@ -7,7 +7,7 @@ import jakarta.inject.Singleton
 class CommandValidator() {
 
     fun validate(command: ErstelleVertrag): ValidationResult {
-        return if (command.payload.beginn < command.payload.ende) ValidationResult(command.id, true)
-        else ValidationResult(command.id, false)
+        return if (command.payload.beginn < command.payload.ende) ValidationResult(command.commandId, true)
+        else ValidationResult(command.commandId, false)
     }
 }

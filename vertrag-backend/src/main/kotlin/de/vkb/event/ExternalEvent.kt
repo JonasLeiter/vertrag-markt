@@ -1,11 +1,10 @@
 package de.vkb.event
 
-import de.vkb.common.AggregateIdentifier
-import de.vkb.models.Vertrag
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.MINIMAL_CLASS, include = JsonTypeInfo.As.PROPERTY, property = "type")
 interface ExternalEvent {
-    val id: String
-    val aggregateIdentifier: AggregateIdentifier
-    val payload: Vertrag
-    val type: EventType
+    val eventId: String
+    val aggregateId: String
+    val payload: Any
 }

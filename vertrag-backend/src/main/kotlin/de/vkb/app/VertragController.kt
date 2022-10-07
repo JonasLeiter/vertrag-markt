@@ -18,7 +18,6 @@ class VertragController(private val vertragService: VertragService) {
         val vertrag = vertragService.vertragErstellen(payload)
         return HttpResponse.created(vertrag)
     }
-
     @Post("/beginn", produces = [MediaType.APPLICATION_JSON], consumes = [MediaType.APPLICATION_JSON])
     fun beginnAendern(@Body payload: AendereBeginnPayload): HttpResponse<AendereBeginnPayload> {
         vertragService.beginnAendern(payload)

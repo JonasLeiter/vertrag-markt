@@ -1,7 +1,6 @@
 package de.vkb.app
 
 import de.vkb.command.*
-import de.vkb.common.AggregateIdentifier
 import de.vkb.kafka.CommandProducer
 import de.vkb.models.Vertrag
 import jakarta.inject.Singleton
@@ -16,18 +15,14 @@ class VertragService(private val commandProducer: CommandProducer) {
         val vertragId = UUID.randomUUID().toString()
 
         val command = ErstelleVertrag(
-            id = commandId,
-            aggregateIdentifier = AggregateIdentifier(
-                id = vertragId,
-                type = "Vertrag"
-            ),
-            payload = payload,
-            type = CommandType.ERSTELLE_VERTRAG
+            commandId = commandId,
+            aggregateId = vertragId,
+            payload = payload
         )
 
-        commandProducer.send(command.id, command)
+        commandProducer.send(command.commandId, command)
 
-        return Vertrag(id = vertragId, bezeichnung = payload.bezeichnung, beginn = payload.beginn, ende = payload.ende)
+        return Vertrag(vertragId, payload.bezeichnung, payload.beginn, payload.ende)
     }
 
     fun beginnAendern(payload: AendereBeginnPayload) {
@@ -35,16 +30,12 @@ class VertragService(private val commandProducer: CommandProducer) {
         val commandId = UUID.randomUUID().toString()
 
         val command = AendereBeginn(
-            id = commandId,
-            aggregateIdentifier = AggregateIdentifier(
-                id = payload.id,
-                type = "Vertrag"
-            ),
-            payload = payload,
-            type = CommandType.AENDERE_BEGINN
+            commandId = commandId,
+            aggregateId = payload.vertragId,
+            payload = payload
         )
 
-        commandProducer.send(command.id, command)
+        commandProducer.send(command.commandId, command)
     }
 
     fun endeAendern(payload: AendereEndePayload) {
@@ -52,16 +43,11 @@ class VertragService(private val commandProducer: CommandProducer) {
         val commandId = UUID.randomUUID().toString()
 
         val command = AendereEnde(
-            id = commandId,
-            aggregateIdentifier = AggregateIdentifier(
-                id = payload.id,
-                type = "Vertrag"
-            ),
-            payload = payload,
-            type = CommandType.AENDERE_ENDE
+            commandId = commandId,
+            aggregateId = payload.vertragId,
+            payload = payload
         )
 
-        commandProducer.send(command.id, command)
+        commandProducer.send(command.commandId, command)
     }
-
 }

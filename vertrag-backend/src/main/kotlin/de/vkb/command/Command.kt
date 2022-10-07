@@ -1,10 +1,10 @@
 package de.vkb.command
 
-import de.vkb.common.AggregateIdentifier
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.MINIMAL_CLASS, include = JsonTypeInfo.As.PROPERTY, property = "type")
 interface Command {
-    val id: String
-    val aggregateIdentifier: AggregateIdentifier
-    val payload: Payload
-    val type: CommandType
+    val commandId: String
+    val aggregateId: String
+    val payload: Any
 }
