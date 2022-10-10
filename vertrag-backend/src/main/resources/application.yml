@@ -8,3 +8,12 @@ netty:
 kafka:
   bootstrap:
     servers: tier.laser.internal:32092
+
+topics:
+  command: learning-vertrag-command
+  internalEvent: learning-vertrag-internal-event
+  externalEvent: learning-vertrag-external-event
+  state: learning-vertrag-state
+
+stores:
+  vertragStore: vertrag

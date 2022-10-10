@@ -6,7 +6,7 @@ data class EndeGeandert(
     override val eventId: String,
     override val aggregateId: String,
     override val payload: EndeGeaendertPayload,
-) : InternalEvent
+) : Event
 
 data class EndeGeaendertPayload(
     val vertragId: String,

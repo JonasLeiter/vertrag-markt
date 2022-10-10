@@ -6,7 +6,7 @@ data class VertragErstellt(
     override val eventId: String,
     override val aggregateId: String,
     override val payload: VertragErstelltPayload,
-) : InternalEvent
+) : Event
 
 data class VertragErstelltPayload(
     val vertragId: String,

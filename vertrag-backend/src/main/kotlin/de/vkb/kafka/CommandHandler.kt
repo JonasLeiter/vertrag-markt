@@ -28,19 +28,19 @@ class CommandHandler(private val serializer: JsonObjectSerializer, private val t
         stream
             .transformValues(
             ValueTransformerWithKeySupplier {
-                object : ValueTransformerWithKey<String, Command, InternalEvent> {
+                object : ValueTransformerWithKey<String, Command, Event> {
 
                     override fun init(context: ProcessorContext?) {}
                     override fun close() {}
 
-                    override fun transform(readOnlyKey: String?, command: Command?): InternalEvent? =
+                    override fun transform(readOnlyKey: String?, command: Command?): Event? =
                         when(command) {
                             is ErstelleVertrag -> {
                                 VertragErstellt(
                                     eventId = command.aggregateId,
                                     aggregateId = command.aggregateId,
                                     payload = VertragErstelltPayload(
-                                        vertragId = "",
+                                        vertragId = "empty",
                                         bezeichnung = command.payload.bezeichnung,
                                         beginn = command.payload.beginn,
                                         ende = command.payload.ende
@@ -52,7 +52,7 @@ class CommandHandler(private val serializer: JsonObjectSerializer, private val t
                                     eventId = command.aggregateId,
                                     aggregateId = command.aggregateId,
                                     payload = BeginnGeaendertPayload(
-                                        vertragId = "",
+                                        vertragId = "empty",
                                         beginn = command.payload.beginn,
                                     )
                                 )
@@ -62,7 +62,7 @@ class CommandHandler(private val serializer: JsonObjectSerializer, private val t
                                     eventId = command.aggregateId,
                                     aggregateId = command.aggregateId,
                                     payload = EndeGeaendertPayload(
-                                        vertragId = "",
+                                        vertragId = "empty",
                                         ende = command.payload.ende,
                                     )
                                 )
@@ -74,7 +74,7 @@ class CommandHandler(private val serializer: JsonObjectSerializer, private val t
         )
             .filter { _, value -> value != null }
             .selectKey { _, value -> value.eventId }
-            .to(topicConfig.internalEvent, Produced.with(Serdes.String(), JsonObjectSerde(serializer, InternalEvent::class.java)))
+            .to(topicConfig.internalEvent, Produced.with(Serdes.String(), JsonObjectSerde(serializer, Event::class.java)))
 
         return stream
     }
