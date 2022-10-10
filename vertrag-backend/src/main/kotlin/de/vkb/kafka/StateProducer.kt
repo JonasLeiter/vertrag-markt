@@ -1,13 +1,13 @@
 package de.vkb.kafka
 
-import de.vkb.command.Command
+import de.vkb.models.Vertrag
 import io.micronaut.configuration.kafka.annotation.KafkaClient
 import io.micronaut.configuration.kafka.annotation.KafkaKey
 import io.micronaut.configuration.kafka.annotation.Topic
 
 @KafkaClient()
-interface CommandProducer {
+interface StateProducer {
 
-    @Topic("\${topics.command}")
-    fun send(@KafkaKey key: String, value: Command)
+    @Topic("\${topics.state}")
+    fun send(@KafkaKey key: String, value: Vertrag)
 }
