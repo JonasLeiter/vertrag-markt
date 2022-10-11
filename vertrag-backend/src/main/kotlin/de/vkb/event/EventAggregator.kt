@@ -1,9 +1,6 @@
 package de.vkb.event
 
-import de.vkb.event.events.BeginnGeandert
-import de.vkb.event.events.EndeGeandert
-import de.vkb.event.events.Event
-import de.vkb.event.events.VertragErstellt
+import de.vkb.event.events.*
 import de.vkb.kafka.StateProducer
 import de.vkb.kafka.StoreConfig
 import de.vkb.kafka.TopicConfig
@@ -51,6 +48,7 @@ class EventAggregator(
                     override fun init(context: ProcessorContext) {
                         vertragStore = context.getStateStore(stores.vertragStore)
                     }
+
                     override fun close() {}
 
                     override fun transform(readOnlyKey: String, event: Event): Event? {
@@ -59,52 +57,74 @@ class EventAggregator(
                         val validationResult = validator.validate(event, existingVertrag)
                         validationProducer.send(validationResult.validationId, validationResult)
 
-                        if (validationResult.valid) {
-                            val vertrag: Vertrag? =
-                                when (event) {
-                                    is VertragErstellt -> {
-                                        event.payload.vertragId = event.aggregateId
-                                        Vertrag(
-                                            id = event.eventId,
-                                            bezeichnung = event.payload.bezeichnung,
-                                            beginn = event.payload.beginn,
-                                            ende = event.payload.ende
+                        return if (validationResult.valid) {
+                            when (event) {
+                                is VertragErstellt -> {
+                                    val vertrag = Vertrag(
+                                        id = event.eventId,
+                                        bezeichnung = event.payload.bezeichnung,
+                                        beginn = event.payload.beginn,
+                                        ende = event.payload.ende
+                                    )
+                                    vertragStore.put(event.eventId, vertrag)
+                                    stateProducer.send(event.eventId, vertrag)
+                                    VertragErstellt(
+                                        eventId = event.eventId,
+                                        aggregateId = event.aggregateId,
+                                        payload = VertragErstelltPayload(
+                                            vertragId = vertrag.id,
+                                            bezeichnung = vertrag.bezeichnung,
+                                            beginn = vertrag.beginn,
+                                            ende = vertrag.ende
                                         )
-                                    }
-                                    is BeginnGeandert -> {
-                                        event.payload.vertragId = event.aggregateId
-                                        Vertrag(
-                                            id = event.eventId,
-                                            bezeichnung = existingVertrag!!.bezeichnung,
-                                            beginn = event.payload.beginn,
-                                            ende = existingVertrag.ende
-                                        )
-                                    }
-                                    is EndeGeandert -> {
-                                        event.payload.vertragId = event.aggregateId
-                                        Vertrag(
-                                            id = event.eventId,
-                                            bezeichnung = existingVertrag!!.bezeichnung,
-                                            beginn = existingVertrag.beginn,
-                                            ende = event.payload.ende
-                                        )
-                                    }
-                                    else -> null
+                                    )
                                 }
 
-                            vertragStore.put(event.eventId, vertrag)
-                            stateProducer.send(event.eventId, vertrag!!)
+                                is BeginnGeaendert -> {
+                                    val vertrag = Vertrag(
+                                        id = event.eventId,
+                                        bezeichnung = existingVertrag!!.bezeichnung,
+                                        beginn = event.payload.beginn,
+                                        ende = existingVertrag.ende
+                                    )
+                                    vertragStore.put(event.eventId, vertrag)
+                                    stateProducer.send(event.eventId, vertrag)
+                                    BeginnGeaendert(
+                                        eventId = event.eventId,
+                                        aggregateId = event.aggregateId,
+                                        payload = BeginnGeaendertPayload(
+                                            vertragId = existingVertrag.id,
+                                            beginn = vertrag.beginn
+                                        )
+                                    )
+                                }
 
-                            return event
-                        } else {
-                            return null
-                        }
+                                is EndeGeaendert -> {
+                                    val vertrag = Vertrag(
+                                        id = event.eventId,
+                                        bezeichnung = existingVertrag!!.bezeichnung,
+                                        beginn = existingVertrag.beginn,
+                                        ende = event.payload.ende
+                                    )
+                                    vertragStore.put(event.eventId, vertrag)
+                                    stateProducer.send(event.eventId, vertrag)
+                                    EndeGeaendert(
+                                        eventId = event.eventId,
+                                        aggregateId = event.aggregateId,
+                                        payload = EndeGeaendertPayload(
+                                            vertragId = existingVertrag.id,
+                                            ende = vertrag.ende
+                                        )
+                                    )
+                                }
+
+                                else -> null
+                            }
+                        } else null
                     }
                 }
             }, stores.vertragStore
         )
-
-        stream
             .filter { _, value -> value != null }
             .selectKey { _, value -> value.eventId }
             .to(topics.externalEvent, Produced.with(Serdes.String(), JsonObjectSerde(serializer, Event::class.java)))

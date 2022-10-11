@@ -22,12 +22,12 @@ class VertragController(private val vertragService: VertragService) {
         return HttpResponse.created(vertrag)
     }
     @Post("/beginn", produces = [MediaType.APPLICATION_JSON], consumes = [MediaType.APPLICATION_JSON])
-    fun beginnAendern(@Body payload: AendereBeginnPayload): HttpResponse<AendereBeginnPayload> {
+    fun beginnAendern(@Valid @Body payload: AendereBeginnPayload): HttpResponse<AendereBeginnPayload> {
         vertragService.beginnAendern(payload)
         return HttpResponse.created(payload)
     }
     @Post("/ende", produces = [MediaType.APPLICATION_JSON], consumes = [MediaType.APPLICATION_JSON])
-    fun endeAendern(@Body payload: AendereEndePayload): HttpResponse<AendereEndePayload> {
+    fun endeAendern(@Valid @Body payload: AendereEndePayload): HttpResponse<AendereEndePayload> {
         vertragService.endeAendern(payload)
         return HttpResponse.created(payload)
     }

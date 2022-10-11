@@ -1,7 +1,7 @@
 package de.vkb.event
 
-import de.vkb.event.events.BeginnGeandert
-import de.vkb.event.events.EndeGeandert
+import de.vkb.event.events.BeginnGeaendert
+import de.vkb.event.events.EndeGeaendert
 import de.vkb.event.events.Event
 import de.vkb.event.events.VertragErstellt
 import de.vkb.common.ValidationType
@@ -30,7 +30,7 @@ class EventValidator {
                     )
                 }
             }
-            is BeginnGeandert -> {
+            is BeginnGeaendert -> {
                 if (vertrag == null) {
                     EventValidationResult(
                         validationId = event.eventId,
@@ -54,7 +54,7 @@ class EventValidator {
                     )
                 }
             }
-            is EndeGeandert -> {
+            is EndeGeaendert -> {
                 if (vertrag == null) {
                     EventValidationResult(
                         validationId = event.eventId,

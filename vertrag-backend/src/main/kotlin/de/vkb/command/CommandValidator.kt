@@ -6,21 +6,15 @@ import de.vkb.command.commands.Command
 import de.vkb.command.commands.ErstelleVertrag
 import de.vkb.common.ValidationType
 import jakarta.inject.Singleton
+import java.time.LocalDate
 
 @Singleton
 class CommandValidator() {
 
     fun validate(command: Command): CommandValidationResult =
-        when(command) {
+        when (command) {
             is ErstelleVertrag -> {
-                if(command.payload.bezeichnung == "") {
-                    CommandValidationResult(
-                        validationId = command.commandId,
-                        valid = false,
-                        validationType = ValidationType.UngueltigeEingabe,
-                        exception = "Bezeichnung fehlt"
-                    )
-                } else if (command.payload.ende.isBefore(command.payload.beginn)) {
+                if (command.payload.ende.isBefore(command.payload.beginn)) {
                     CommandValidationResult(
                         validationId = command.commandId,
                         valid = false,
@@ -36,13 +30,14 @@ class CommandValidator() {
                     )
                 }
             }
+
             is AendereBeginn -> {
-                if(command.payload.vertragId == "") {
+                if (command.payload.beginn.isBefore(LocalDate.now())) {
                     CommandValidationResult(
                         validationId = command.commandId,
                         valid = false,
                         validationType = ValidationType.UngueltigeEingabe,
-                        exception = "Vertrag Id fehlt"
+                        exception = "Vertragsbeginn darf nicht in der Vergangenheit liegen"
                     )
                 } else {
                     CommandValidationResult(
@@ -53,13 +48,14 @@ class CommandValidator() {
                     )
                 }
             }
+
             is AendereEnde -> {
-                if(command.payload.vertragId == "") {
+                if (command.payload.ende.isBefore(LocalDate.now())) {
                     CommandValidationResult(
                         validationId = command.commandId,
                         valid = false,
                         validationType = ValidationType.UngueltigeEingabe,
-                        exception = "Vertrag Id fehlt"
+                        exception = "Vertragsende darf nicht in der Vergangenheit liegen"
                     )
                 } else {
                     CommandValidationResult(
@@ -70,6 +66,7 @@ class CommandValidator() {
                     )
                 }
             }
+
             else -> {
                 CommandValidationResult(
                     validationId = command.commandId,

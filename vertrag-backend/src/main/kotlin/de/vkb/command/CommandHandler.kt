@@ -19,7 +19,7 @@ import org.apache.kafka.streams.processor.ProcessorContext
 @Factory
 class CommandHandler(
     private val serializer: JsonObjectSerializer,
-    private val topicConfig: TopicConfig,
+    private val topics: TopicConfig,
     private val commandValidator: CommandValidator,
     private val validationProducer: ValidationProducer
 ) {
@@ -28,7 +28,7 @@ class CommandHandler(
     fun createCommandStream(builder: ConfiguredStreamBuilder): KStream<String, Command> {
 
         val stream: KStream<String, Command> = builder.stream(
-            topicConfig.command,
+            topics.command,
             Consumed.with(Serdes.String(), JsonObjectSerde(serializer, Command::class.java))
         )
 
@@ -59,8 +59,9 @@ class CommandHandler(
                                             )
                                         )
                                     }
+
                                     is AendereBeginn -> {
-                                        BeginnGeandert(
+                                        BeginnGeaendert(
                                             eventId = command.aggregateId,
                                             aggregateId = command.aggregateId,
                                             payload = BeginnGeaendertPayload(
@@ -69,8 +70,9 @@ class CommandHandler(
                                             )
                                         )
                                     }
+
                                     is AendereEnde -> {
-                                        EndeGeandert(
+                                        EndeGeaendert(
                                             eventId = command.aggregateId,
                                             aggregateId = command.aggregateId,
                                             payload = EndeGeaendertPayload(
@@ -79,10 +81,10 @@ class CommandHandler(
                                             )
                                         )
                                     }
+
                                     else -> null
                                 }
-                            }
-                            else null
+                            } else null
                         }
                     }
                 }
@@ -90,7 +92,7 @@ class CommandHandler(
             .filter { _, value -> value != null }
             .selectKey { _, value -> value.eventId }
             .to(
-                topicConfig.internalEvent,
+                topics.internalEvent,
                 Produced.with(Serdes.String(), JsonObjectSerde(serializer, Event::class.java))
             )
 

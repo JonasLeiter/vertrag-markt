@@ -2,13 +2,13 @@ package de.vkb.event.events
 
 import java.time.LocalDate
 
-data class BeginnGeandert(
+data class EndeGeaendert(
     override var eventId: String,
     override var aggregateId: String,
-    override var payload: BeginnGeaendertPayload,
+    override var payload: EndeGeaendertPayload,
 ) : Event
 
-data class BeginnGeaendertPayload(
+data class EndeGeaendertPayload(
     var vertragId: String,
-    var beginn: LocalDate,
+    var ende: LocalDate,
 )
