@@ -1,10 +1,10 @@
 package de.vkb.models
 
-import java.util.*
+import java.time.LocalDate
 
 data class Vertrag(
     var id: String,
     var bezeichnung: String,
-    var beginn: Date,
-    var ende: Date
+    var beginn: LocalDate,
+    var ende: LocalDate
 )

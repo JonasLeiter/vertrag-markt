@@ -1,8 +1,13 @@
 package de.vkb.event
 
+import de.vkb.event.events.BeginnGeandert
+import de.vkb.event.events.EndeGeandert
+import de.vkb.event.events.Event
+import de.vkb.event.events.VertragErstellt
 import de.vkb.kafka.StateProducer
 import de.vkb.kafka.StoreConfig
 import de.vkb.kafka.TopicConfig
+import de.vkb.kafka.ValidationProducer
 import de.vkb.models.Vertrag
 import io.micronaut.configuration.kafka.serde.JsonObjectSerde
 import io.micronaut.configuration.kafka.streams.ConfiguredStreamBuilder
@@ -21,7 +26,9 @@ class EventAggregator(
     private val topics: TopicConfig,
     private val serializer: JsonObjectSerializer,
     private val validator: EventValidator,
-    private val stateProducer: StateProducer) {
+    private val stateProducer: StateProducer,
+    private val validationProducer: ValidationProducer
+) {
 
     @Singleton
     fun createExternalEventStream(builder: ConfiguredStreamBuilder): KStream<String, Event> {
@@ -33,9 +40,8 @@ class EventAggregator(
         )
         val stream: KStream<String, Event> = builder.stream(
             topics.internalEvent,
-            Consumed.with(Serdes.String(), JsonObjectSerde(serializer, Event::class.java)))
-
-        var vertrag: Vertrag
+            Consumed.with(Serdes.String(), JsonObjectSerde(serializer, Event::class.java))
+        )
 
         stream.transformValues(
             ValueTransformerWithKeySupplier {
@@ -45,52 +51,55 @@ class EventAggregator(
                     override fun init(context: ProcessorContext) {
                         vertragStore = context.getStateStore(stores.vertragStore)
                     }
+                    override fun close() {}
 
-                    override fun transform(readOnlyKey: String, value: Event): Event? {
+                    override fun transform(readOnlyKey: String, event: Event): Event? {
                         val existingVertrag: Vertrag? = vertragStore[readOnlyKey]
 
-                        val validation = validator.validate(value, existingVertrag)
+                        val validationResult = validator.validate(event, existingVertrag)
+                        validationProducer.send(validationResult.validationId, validationResult)
 
-                        if(validation.valid) {
-                            when(value) {
-                                is VertragErstellt -> {
-                                    vertrag = Vertrag(
-                                        id = value.eventId,
-                                        bezeichnung = value.payload.bezeichnung,
-                                        beginn = value.payload.beginn,
-                                        ende = value.payload.ende
-                                    )
-                                    vertragStore.put(value.eventId, vertrag)
-                                    stateProducer.send(value.eventId, vertrag)
+                        if (validationResult.valid) {
+                            val vertrag: Vertrag? =
+                                when (event) {
+                                    is VertragErstellt -> {
+                                        event.payload.vertragId = event.aggregateId
+                                        Vertrag(
+                                            id = event.eventId,
+                                            bezeichnung = event.payload.bezeichnung,
+                                            beginn = event.payload.beginn,
+                                            ende = event.payload.ende
+                                        )
+                                    }
+                                    is BeginnGeandert -> {
+                                        event.payload.vertragId = event.aggregateId
+                                        Vertrag(
+                                            id = event.eventId,
+                                            bezeichnung = existingVertrag!!.bezeichnung,
+                                            beginn = event.payload.beginn,
+                                            ende = existingVertrag.ende
+                                        )
+                                    }
+                                    is EndeGeandert -> {
+                                        event.payload.vertragId = event.aggregateId
+                                        Vertrag(
+                                            id = event.eventId,
+                                            bezeichnung = existingVertrag!!.bezeichnung,
+                                            beginn = existingVertrag.beginn,
+                                            ende = event.payload.ende
+                                        )
+                                    }
+                                    else -> null
                                 }
-                                is BeginnGeandert -> {
-                                    vertrag = Vertrag(
-                                        id = value.eventId,
-                                        bezeichnung = existingVertrag!!.bezeichnung,
-                                        beginn = value.payload.beginn,
-                                        ende = existingVertrag.ende
-                                    )
-                                    vertragStore.put(value.eventId, vertrag)
-                                    stateProducer.send(value.eventId, vertrag)
-                                }
-                                is EndeGeandert -> {
-                                    vertrag = Vertrag(
-                                        id = value.eventId,
-                                        bezeichnung = existingVertrag!!.bezeichnung,
-                                        beginn = existingVertrag.beginn,
-                                        ende = value.payload.ende
-                                    )
-                                    vertragStore.put(value.eventId, vertrag)
-                                    stateProducer.send(value.eventId, vertrag)
-                                }
-                            }
-                            return value
+
+                            vertragStore.put(event.eventId, vertrag)
+                            stateProducer.send(event.eventId, vertrag!!)
+
+                            return event
                         } else {
                             return null
                         }
                     }
-
-                    override fun close() {}
                 }
             }, stores.vertragStore
         )

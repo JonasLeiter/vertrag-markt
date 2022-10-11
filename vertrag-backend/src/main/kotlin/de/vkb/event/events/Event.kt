@@ -1,4 +1,4 @@
-package de.vkb.event
+package de.vkb.event.events
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 

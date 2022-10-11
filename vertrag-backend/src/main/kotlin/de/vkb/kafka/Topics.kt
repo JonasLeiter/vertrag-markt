@@ -18,6 +18,10 @@ interface TopicConfig {
     @get:NotBlank
     val externalEvent: String
 
+    @get:Bindable(defaultValue = "learning-vertrag-validation")
+    @get:NotBlank
+    val validation: String
+
     @get:Bindable(defaultValue = "learning-vertrag-state")
     @get:NotBlank
     val state: String

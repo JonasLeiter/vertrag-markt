@@ -1,4 +1,4 @@
-package de.vkb.command
+package de.vkb.command.commands
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 

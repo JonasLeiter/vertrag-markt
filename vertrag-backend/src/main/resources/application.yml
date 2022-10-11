@@ -13,6 +13,7 @@ topics:
   command: learning-vertrag-command
   internalEvent: learning-vertrag-internal-event
   externalEvent: learning-vertrag-external-event
+  validation: learning-vertrag-validation
   state: learning-vertrag-state
 
 stores:
