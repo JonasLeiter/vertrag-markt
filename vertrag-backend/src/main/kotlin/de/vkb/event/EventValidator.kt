@@ -30,6 +30,7 @@ class EventValidator {
                     )
                 }
             }
+
             is BeginnGeaendert -> {
                 if (vertrag == null) {
                     EventValidationResult(
@@ -54,6 +55,7 @@ class EventValidator {
                     )
                 }
             }
+
             is EndeGeaendert -> {
                 if (vertrag == null) {
                     EventValidationResult(
@@ -78,6 +80,7 @@ class EventValidator {
                     )
                 }
             }
+
             else -> EventValidationResult(
                 validationId = "",
                 valid = false,

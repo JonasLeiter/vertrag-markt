@@ -1,7 +1,7 @@
 package de.vkb.app
 
 import de.vkb.command.commands.*
-import de.vkb.kafka.CommandProducer
+import de.vkb.kafka.producers.CommandProducer
 import de.vkb.models.Vertrag
 import jakarta.inject.Singleton
 import java.util.*

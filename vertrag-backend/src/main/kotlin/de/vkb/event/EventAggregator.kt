@@ -1,10 +1,10 @@
 package de.vkb.event
 
 import de.vkb.event.events.*
-import de.vkb.kafka.StateProducer
+import de.vkb.kafka.producers.StateProducer
 import de.vkb.kafka.StoreConfig
 import de.vkb.kafka.TopicConfig
-import de.vkb.kafka.ValidationProducer
+import de.vkb.kafka.producers.ValidationProducer
 import de.vkb.models.Vertrag
 import io.micronaut.configuration.kafka.serde.JsonObjectSerde
 import io.micronaut.configuration.kafka.streams.ConfiguredStreamBuilder
@@ -93,7 +93,7 @@ class EventAggregator(
                                         eventId = event.eventId,
                                         aggregateId = event.aggregateId,
                                         payload = BeginnGeaendertPayload(
-                                            vertragId = existingVertrag.id,
+                                            vertragId = vertrag.id,
                                             beginn = vertrag.beginn
                                         )
                                     )
@@ -112,7 +112,7 @@ class EventAggregator(
                                         eventId = event.eventId,
                                         aggregateId = event.aggregateId,
                                         payload = EndeGeaendertPayload(
-                                            vertragId = existingVertrag.id,
+                                            vertragId = vertrag.id,
                                             ende = vertrag.ende
                                         )
                                     )

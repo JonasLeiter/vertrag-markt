@@ -1,13 +1,13 @@
-package de.vkb.kafka
+package de.vkb.kafka.producers
 
-import de.vkb.command.commands.Command
+import de.vkb.common.ValidationResult
 import io.micronaut.configuration.kafka.annotation.KafkaClient
 import io.micronaut.configuration.kafka.annotation.KafkaKey
 import io.micronaut.configuration.kafka.annotation.Topic
 
 @KafkaClient()
-interface CommandProducer {
+interface ValidationProducer {
 
-    @Topic("\${topics.command}")
-    fun send(@KafkaKey key: String, value: Command)
+    @Topic("\${topics.validation}")
+    fun send(@KafkaKey key: String, value: ValidationResult)
 }

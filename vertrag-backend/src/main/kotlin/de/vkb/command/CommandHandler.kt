@@ -6,7 +6,7 @@ import de.vkb.command.commands.Command
 import de.vkb.command.commands.ErstelleVertrag
 import de.vkb.event.events.*
 import de.vkb.kafka.TopicConfig
-import de.vkb.kafka.ValidationProducer
+import de.vkb.kafka.producers.ValidationProducer
 import io.micronaut.configuration.kafka.serde.JsonObjectSerde
 import io.micronaut.configuration.kafka.streams.ConfiguredStreamBuilder
 import io.micronaut.context.annotation.Factory

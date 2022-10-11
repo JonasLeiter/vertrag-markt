@@ -1,13 +1,13 @@
-package de.vkb.kafka
+package de.vkb.kafka.producers
 
-import de.vkb.common.ValidationResult
+import de.vkb.models.Vertrag
 import io.micronaut.configuration.kafka.annotation.KafkaClient
 import io.micronaut.configuration.kafka.annotation.KafkaKey
 import io.micronaut.configuration.kafka.annotation.Topic
 
 @KafkaClient()
-interface ValidationProducer {
+interface StateProducer {
 
-    @Topic("\${topics.validation}")
-    fun send(@KafkaKey key: String, value: ValidationResult)
+    @Topic("\${topics.state}")
+    fun send(@KafkaKey key: String, value: Vertrag)
 }
