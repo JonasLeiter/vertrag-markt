@@ -9,6 +9,7 @@ import io.micronaut.http.MediaType
 import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Post
+import io.micronaut.http.annotation.Put
 import io.micronaut.validation.Validated
 import javax.validation.Valid
 
@@ -21,12 +22,12 @@ class VertragController(private val vertragService: VertragService) {
         val vertrag = vertragService.vertragErstellen(payload)
         return HttpResponse.created(vertrag)
     }
-    @Post("/beginn", produces = [MediaType.APPLICATION_JSON], consumes = [MediaType.APPLICATION_JSON])
+    @Put("/beginn", produces = [MediaType.APPLICATION_JSON], consumes = [MediaType.APPLICATION_JSON])
     fun beginnAendern(@Valid @Body payload: AendereBeginnPayload): HttpResponse<AendereBeginnPayload> {
         vertragService.beginnAendern(payload)
         return HttpResponse.created(payload)
     }
-    @Post("/ende", produces = [MediaType.APPLICATION_JSON], consumes = [MediaType.APPLICATION_JSON])
+    @Put("/ende", produces = [MediaType.APPLICATION_JSON], consumes = [MediaType.APPLICATION_JSON])
     fun endeAendern(@Valid @Body payload: AendereEndePayload): HttpResponse<AendereEndePayload> {
         vertragService.endeAendern(payload)
         return HttpResponse.created(payload)

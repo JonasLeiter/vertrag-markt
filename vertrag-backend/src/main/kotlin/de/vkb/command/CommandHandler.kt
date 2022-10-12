@@ -6,13 +6,13 @@ import de.vkb.command.commands.Command
 import de.vkb.command.commands.ErstelleVertrag
 import de.vkb.event.events.*
 import de.vkb.kafka.TopicConfig
-import de.vkb.kafka.producers.ValidationProducer
 import io.micronaut.configuration.kafka.serde.JsonObjectSerde
 import io.micronaut.configuration.kafka.streams.ConfiguredStreamBuilder
 import io.micronaut.context.annotation.Factory
 import io.micronaut.json.JsonObjectSerializer
 import jakarta.inject.Singleton
 import org.apache.kafka.common.serialization.Serdes
+import org.apache.kafka.streams.KeyValue
 import org.apache.kafka.streams.kstream.*
 import org.apache.kafka.streams.processor.ProcessorContext
 
@@ -20,35 +20,32 @@ import org.apache.kafka.streams.processor.ProcessorContext
 class CommandHandler(
     private val serializer: JsonObjectSerializer,
     private val topics: TopicConfig,
-    private val commandValidator: CommandValidator,
-    private val validationProducer: ValidationProducer
+    private val commandValidator: CommandValidator
 ) {
 
     @Singleton
-    fun createCommandStream(builder: ConfiguredStreamBuilder): KStream<String, Command> {
+    fun createCommandStream(builder: ConfiguredStreamBuilder): KStream<String, *> {
 
-        val stream: KStream<String, Command> = builder.stream(
+        val stream = builder.stream(
             topics.command,
             Consumed.with(Serdes.String(), JsonObjectSerde(serializer, Command::class.java))
         )
-
-        stream
             .transformValues(
                 ValueTransformerWithKeySupplier {
-                    object : ValueTransformerWithKey<String, Command, Event> {
+                    object : ValueTransformerWithKey<String, Command, Pair<Event?, CommandValidationResult>> {
 
                         override fun init(context: ProcessorContext?) {}
                         override fun close() {}
 
-                        override fun transform(readOnlyKey: String, command: Command): Event? {
+                        override fun transform(readOnlyKey: String, command: Command): Pair<Event?, CommandValidationResult> {
 
                             val validationResult = commandValidator.validate(command)
-                            validationProducer.send(validationResult.validationId, validationResult)
+
 
                             return if (validationResult.valid) {
                                 when (command) {
                                     is ErstelleVertrag -> {
-                                        VertragErstellt(
+                                        val event = VertragErstellt(
                                             eventId = command.aggregateId,
                                             aggregateId = command.aggregateId,
                                             payload = VertragErstelltPayload(
@@ -58,10 +55,11 @@ class CommandHandler(
                                                 ende = command.payload.ende
                                             )
                                         )
+                                        Pair(event, validationResult)
                                     }
 
                                     is AendereBeginn -> {
-                                        BeginnGeaendert(
+                                        val event = BeginnGeaendert(
                                             eventId = command.aggregateId,
                                             aggregateId = command.aggregateId,
                                             payload = BeginnGeaendertPayload(
@@ -69,10 +67,11 @@ class CommandHandler(
                                                 beginn = command.payload.beginn,
                                             )
                                         )
+                                        Pair(event, validationResult)
                                     }
 
                                     is AendereEnde -> {
-                                        EndeGeaendert(
+                                        val event = EndeGeaendert(
                                             eventId = command.aggregateId,
                                             aggregateId = command.aggregateId,
                                             payload = EndeGeaendertPayload(
@@ -80,20 +79,30 @@ class CommandHandler(
                                                 ende = command.payload.ende,
                                             )
                                         )
+                                        Pair(event, validationResult)
                                     }
 
-                                    else -> null
+                                    else -> Pair(null, validationResult)
                                 }
-                            } else null
+                            } else Pair(null, validationResult)
                         }
                     }
                 }
             )
-            .filter { _, value -> value != null }
-            .selectKey { _, value -> value.eventId }
+
+        stream
+            .filter { _, value -> value.first != null }
+            .map { _, value -> KeyValue(value.first!!.eventId, value.first) }
             .to(
                 topics.internalEvent,
                 Produced.with(Serdes.String(), JsonObjectSerde(serializer, Event::class.java))
+            )
+
+        stream
+            .map { _, value -> KeyValue(value.second.validationId, value.second) }
+            .to(
+                topics.validation,
+                Produced.with(Serdes.String(), JsonObjectSerde(serializer, CommandValidationResult::class.java))
             )
 
         return stream
