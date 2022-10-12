@@ -40,19 +40,15 @@ class EventAggregator(private val serializer: JsonObjectSerializer,
             ValueTransformerWithKeySupplier {
                 object : ValueTransformerWithKey<String, Event, Pair<Event?, EventResult> > {
                     lateinit var stateStore: KeyValueStore<String, Markt>
-//                    lateinit var validationStore: KeyValueStore<String, Validation>
 
                     override fun init(context: ProcessorContext) {
                         stateStore = context.getStateStore(storeConfig.stateStore)
-//                        validationStore = context.getStateStore(storeConfig.validationStore)
                     }
 
 
                     override fun transform(readOnlyKey: String?, event: Event): Pair<Event?, EventResult> {
                         val markt: Markt? = stateStore[readOnlyKey]
                         val result: EventResult = EventValidator().validateEvent(markt, event)
-
-//                        validationStore.put(event.commandId, result.validation)
 
                         val extEvent = if(result.validation.isValid){
                             stateStore.put(readOnlyKey, result.markt)
