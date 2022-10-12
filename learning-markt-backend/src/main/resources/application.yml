@@ -1,0 +1,20 @@
+micronaut:
+  application:
+    name: learning-markt-backend
+netty:
+  default:
+    allocator:
+      max-order: 3
+kafka:
+  bootstrap:
+    servers: localhost:32092
+
+topics:
+  command: "learning-markt-command"
+  internalEvent: "learning-markt-internal-event"
+  externalEvent: "learning-markt-external-event"
+  validation: "learning-markt-validation"
+  state: "learning-markt-state"
+
+stores:
+  stateStore: markt-store
