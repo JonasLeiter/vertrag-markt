@@ -17,40 +17,26 @@ import org.apache.kafka.streams.processor.ProcessorContext
 
 @Factory
 class CommandHandler(private val serializer: JsonObjectSerializer,
-                     private val topicConfig: TopicConfig,
-                     private val storeConfig: StoreConfig
+                     private val topicConfig: TopicConfig
 ) {
 
     @Singleton
     fun handleCommand(builder: ConfiguredStreamBuilder): KStream<String, *> {
-//        builder.addStateStore(
-//            Stores.keyValueStoreBuilder(
-//                Stores.persistentKeyValueStore(storeConfig.validationStore),
-//                Serdes.StringSerde(), JsonObjectSerde(serializer, Validation::class.java)
-//            )
-//        )
-
         val stream = builder.stream(
             topicConfig.command, Consumed.with(Serdes.String(), JsonObjectSerde(serializer, Command::class.java)
             )
         ).transformValues(
             ValueTransformerWithKeySupplier {
                 object : ValueTransformerWithKey<String, Command, Pair<Event?, CommandValidation>> {
-//                    lateinit var validationStore: KeyValueStore<String, Validation>
-
-                    override fun init(context: ProcessorContext) {
-//                        validationStore = context.getStateStore(storeConfig.validationStore)
-                    }
+                    override fun init(context: ProcessorContext) {}
 
                     override fun transform(readOnlyKey: String?, command: Command):  Pair<Event?, CommandValidation> {
                         val commandResult = CommandValidator().validate(command)
 
 
                         val intEvent = if(commandResult.validation.isValid) {
-//                            validationStore.put(command.commandId, commandResult.validation)
                             commandResult.event
                         } else{
-//                            validationStore.put(command.commandId, commandResult.validation)
                             null
                         }
 
