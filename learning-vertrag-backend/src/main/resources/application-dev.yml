@@ -1,4 +1,6 @@
 micronaut:
+  server:
+    port: 8081
   application:
     name: learning-vertrag-backend
 netty:
@@ -7,7 +9,10 @@ netty:
       max-order: 3
 kafka:
   bootstrap:
-    servers: tier.laser.internal:32092
+    servers: localhost:32092
+  state:
+    dir: "/home/jonas/Downloads/State"
+
 
 topics:
   command: learning-vertrag-command
@@ -17,4 +22,4 @@ topics:
   state: learning-vertrag-state
 
 stores:
-  vertragStore: vertrag
+  stateStore: vertrag

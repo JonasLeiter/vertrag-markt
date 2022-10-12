@@ -1,3 +1,5 @@
+#! /usr/bin/bash
+
 for (( i=1; i<=5; i++ ))
 do
 	response=$(curl --header "Content-Type: application/json" \
