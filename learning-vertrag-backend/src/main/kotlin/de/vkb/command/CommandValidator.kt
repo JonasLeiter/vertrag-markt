@@ -16,14 +16,16 @@ class CommandValidator() {
             is ErstelleVertrag -> {
                 if (command.payload.ende.isBefore(command.payload.beginn)) {
                     CommandValidationResult(
-                        validationId = command.commandId,
+                        commandId = command.commandId,
+                        aggregateId = command.aggregateId,
                         valid = false,
                         validationType = ValidationType.UngueltigeEingabe,
                         exception = "Ende liegt vor Beginn"
                     )
                 } else {
                     CommandValidationResult(
-                        validationId = command.commandId,
+                        commandId = command.commandId,
+                        aggregateId = command.aggregateId,
                         valid = true,
                         validationType = ValidationType.Gueltig,
                         exception = ""
@@ -34,14 +36,16 @@ class CommandValidator() {
             is AendereBeginn -> {
                 if (command.payload.beginn.isBefore(LocalDate.now())) {
                     CommandValidationResult(
-                        validationId = command.commandId,
+                        commandId = command.commandId,
+                        aggregateId = command.aggregateId,
                         valid = false,
                         validationType = ValidationType.UngueltigeEingabe,
                         exception = "Vertragsbeginn darf nicht in der Vergangenheit liegen"
                     )
                 } else {
                     CommandValidationResult(
-                        validationId = command.commandId,
+                        commandId = command.commandId,
+                        aggregateId = command.aggregateId,
                         valid = true,
                         validationType = ValidationType.Gueltig,
                         exception = ""
@@ -52,14 +56,16 @@ class CommandValidator() {
             is AendereEnde -> {
                 if (command.payload.ende.isBefore(LocalDate.now())) {
                     CommandValidationResult(
-                        validationId = command.commandId,
+                        commandId = command.commandId,
+                        aggregateId = command.aggregateId,
                         valid = false,
                         validationType = ValidationType.UngueltigeEingabe,
                         exception = "Vertragsende darf nicht in der Vergangenheit liegen"
                     )
                 } else {
                     CommandValidationResult(
-                        validationId = command.commandId,
+                        commandId = command.commandId,
+                        aggregateId = command.aggregateId,
                         valid = true,
                         validationType = ValidationType.Gueltig,
                         exception = ""
@@ -69,7 +75,8 @@ class CommandValidator() {
 
             else -> {
                 CommandValidationResult(
-                    validationId = command.commandId,
+                    commandId = command.commandId,
+                    aggregateId = command.aggregateId,
                     valid = false,
                     validationType = ValidationType.Ungueltig,
                     exception = "Unbekannter Fehler"

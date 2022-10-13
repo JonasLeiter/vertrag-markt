@@ -1,4 +1,6 @@
 micronaut:
+  server:
+    port: ${SERVER_PORT:8080}
   application:
     name: learning-vertrag-backend
 netty:
@@ -8,6 +10,8 @@ netty:
 kafka:
   bootstrap:
     servers: tier.laser.internal:32092
+  state:
+    dir: ${STATE_DIR:/tmp/kafka-streams/learning-vertrag-backend}
 
 topics:
   command: learning-vertrag-command
@@ -18,3 +22,8 @@ topics:
 
 stores:
   vertragStore: vertrag
+
+jackson:
+  serialization-inclusion: always
+  serialization:
+    writeDatesAsTimestamp: false
