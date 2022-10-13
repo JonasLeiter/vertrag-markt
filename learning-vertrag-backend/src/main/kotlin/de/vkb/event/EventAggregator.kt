@@ -60,13 +60,13 @@ class EventAggregator(
                                 when (event) {
                                     is VertragErstellt -> {
                                         val vertrag = Vertrag(
-                                            id = event.eventId,
+                                            id = event.aggregateId,
                                             bezeichnung = event.payload.bezeichnung,
                                             beginn = event.payload.beginn,
                                             ende = event.payload.ende
                                         )
                                         val externalEvent = VertragErstellt(
-                                            eventId = event.eventId,
+                                            commandId = event.commandId,
                                             aggregateId = event.aggregateId,
                                             payload = VertragErstelltPayload(
                                                 vertragId = vertrag.id,
@@ -82,7 +82,7 @@ class EventAggregator(
                                     is BeginnGeaendert -> {
                                         val vertrag = existingVertrag!!.copy(beginn = event.payload.beginn)
                                         val externalEvent = BeginnGeaendert(
-                                            eventId = event.eventId,
+                                            commandId = event.commandId,
                                             aggregateId = event.aggregateId,
                                             payload = BeginnGeaendertPayload(
                                                 vertragId = vertrag.id,
@@ -96,7 +96,7 @@ class EventAggregator(
                                     is EndeGeaendert -> {
                                         val vertrag = existingVertrag!!.copy(ende = event.payload.ende)
                                         val externalEvent = EndeGeaendert(
-                                            eventId = event.eventId,
+                                            commandId = event.commandId,
                                             aggregateId = event.aggregateId,
                                             payload = EndeGeaendertPayload(
                                                 vertragId = vertrag.id,
@@ -125,14 +125,14 @@ class EventAggregator(
 
         stream
             .filter { _, value -> value.second != null }
-            .map { _, value -> KeyValue(value.second!!.eventId, value.second) }
+            .map { _, value -> KeyValue(value.second!!.aggregateId, value.second) }
             .to(
                 topics.externalEvent,
                 Produced.with(Serdes.String(), JsonObjectSerde(serializer, Event::class.java))
             )
 
         stream
-            .map { _, value -> KeyValue(value.third.validationId, value.third) }
+            .map { _, value -> KeyValue(value.third.aggregateId, value.third) }
             .to(
                 topics.validation,
                 Produced.with(Serdes.String(), JsonObjectSerde(serializer, EventValidationResult::class.java))

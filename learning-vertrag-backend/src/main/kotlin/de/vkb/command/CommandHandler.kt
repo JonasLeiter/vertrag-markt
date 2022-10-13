@@ -46,10 +46,10 @@ class CommandHandler(
                                 when (command) {
                                     is ErstelleVertrag -> {
                                         val event = VertragErstellt(
-                                            eventId = command.aggregateId,
+                                            commandId = command.commandId,
                                             aggregateId = command.aggregateId,
                                             payload = VertragErstelltPayload(
-                                                vertragId = "empty",
+                                                vertragId = command.aggregateId,
                                                 bezeichnung = command.payload.bezeichnung,
                                                 beginn = command.payload.beginn,
                                                 ende = command.payload.ende
@@ -60,10 +60,10 @@ class CommandHandler(
 
                                     is AendereBeginn -> {
                                         val event = BeginnGeaendert(
-                                            eventId = command.aggregateId,
+                                            commandId = command.commandId,
                                             aggregateId = command.aggregateId,
                                             payload = BeginnGeaendertPayload(
-                                                vertragId = "empty",
+                                                vertragId = command.aggregateId,
                                                 beginn = command.payload.beginn,
                                             )
                                         )
@@ -72,10 +72,10 @@ class CommandHandler(
 
                                     is AendereEnde -> {
                                         val event = EndeGeaendert(
-                                            eventId = command.aggregateId,
+                                            commandId = command.commandId,
                                             aggregateId = command.aggregateId,
                                             payload = EndeGeaendertPayload(
-                                                vertragId = "empty",
+                                                vertragId = command.aggregateId,
                                                 ende = command.payload.ende,
                                             )
                                         )
@@ -92,14 +92,14 @@ class CommandHandler(
 
         stream
             .filter { _, value -> value.first != null }
-            .map { _, value -> KeyValue(value.first!!.eventId, value.first) }
+            .map { _, value -> KeyValue(value.first!!.aggregateId, value.first) }
             .to(
                 topics.internalEvent,
                 Produced.with(Serdes.String(), JsonObjectSerde(serializer, Event::class.java))
             )
 
         stream
-            .map { _, value -> KeyValue(value.second.validationId, value.second) }
+            .map { _, value -> KeyValue(value.second.aggregateId, value.second) }
             .to(
                 topics.validation,
                 Produced.with(Serdes.String(), JsonObjectSerde(serializer, CommandValidationResult::class.java))
