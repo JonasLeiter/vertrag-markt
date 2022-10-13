@@ -1,6 +1,8 @@
 micronaut:
   application:
     name: learning-markt-backend
+  server:
+    port: ${SERVER_PORT:8080}
 netty:
   default:
     allocator:
@@ -8,13 +10,27 @@ netty:
 kafka:
   bootstrap:
     servers: localhost:32092
+  state:
+    dir: ${STATE_DIR:/tmp/kafka-streams/learning-markt-backend}
+  streams:
+    default:
+      application.id: learning-markt-command-handler
+      processing.guarantee: exactly_once
+      sasl.jaas.config: null
+
+    event-aggregator:
+      application.id: learning-markt-event-aggregator
+      processing.guarantee: exactly_once
+      sasl.jaas.config: null
 
 topics:
-  command: "learning-markt-command"
-  internalEvent: "learning-markt-internal-event"
-  externalEvent: "learning-markt-external-event"
-  validation: "learning-markt-validation"
-  state: "learning-markt-state"
+  command: learning-markt-command
+  internalEvent: learning-markt-internal-event
+  externalEvent: learning-markt-external-event
+  validation: learning-markt-validation
+  state: learning-markt-state
+  vertragState: learning-vertrag-state
 
 stores:
   stateStore: markt-store
+  vertragStore: vertrag-store

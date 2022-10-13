@@ -1,6 +1,5 @@
 package de.vkb.streams.command
 
-import de.vkb.config.StoreConfig
 import de.vkb.config.TopicConfig
 import de.vkb.model.command.Command
 import de.vkb.model.event.Event

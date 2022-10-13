@@ -19,7 +19,8 @@ class CommandValidator{
                     commandId = command.commandId,
                     payload = MarktErstelltPayload(
                         ort = command.payload.ort,
-                        datum = command.payload.datum
+                        datum = command.payload.datum,
+                        vertragId = command.payload.vertragId
                     ),
                     aggregateIdentifier = command.aggregateIdentifier)
                 CommandResult(result, event)

@@ -17,4 +17,6 @@ data class ErstelleMarktPayload(
     val ort: String,
     @field:JsonFormat(pattern = "yyyy-MM-dd")
     @field:NotBlank
-    val datum: LocalDate)
+    val datum: LocalDate,
+    @field:NotBlank
+    val vertragId: String)

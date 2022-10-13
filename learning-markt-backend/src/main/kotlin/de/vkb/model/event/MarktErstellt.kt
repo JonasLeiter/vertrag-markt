@@ -10,5 +10,6 @@ data class MarktErstellt(
 
 data class MarktErstelltPayload(
     val ort: String,
-    val datum: LocalDate
+    val datum: LocalDate,
+    val vertragId: String
 )
