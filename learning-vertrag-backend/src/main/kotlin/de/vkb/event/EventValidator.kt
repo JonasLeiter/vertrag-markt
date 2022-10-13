@@ -16,14 +16,16 @@ class EventValidator {
             is VertragErstellt -> {
                 if (vertrag == null) {
                     EventValidationResult(
-                        validationId = event.eventId,
+                        commandId = event.commandId,
+                        aggregateId = event.aggregateId,
                         valid = true,
                         validationType = ValidationType.Gueltig,
                         exception = ""
                     )
                 } else {
                     EventValidationResult(
-                        validationId = event.eventId,
+                        commandId = event.commandId,
+                        aggregateId = event.aggregateId,
                         valid = false,
                         validationType = ValidationType.Ungueltig,
                         exception = "Vertrag existiert bereits"
@@ -34,21 +36,24 @@ class EventValidator {
             is BeginnGeaendert -> {
                 if (vertrag == null) {
                     EventValidationResult(
-                        validationId = event.eventId,
+                        commandId = event.commandId,
+                        aggregateId = event.aggregateId,
                         valid = false,
                         validationType = ValidationType.Ungueltig,
                         exception = "Vertrag existiert nicht"
                     )
                 } else if (event.payload.beginn.isAfter(vertrag.ende)) {
                     EventValidationResult(
-                        validationId = event.eventId,
+                        commandId = event.commandId,
+                        aggregateId = event.aggregateId,
                         valid = false,
                         validationType = ValidationType.Ungueltig,
                         exception = "Neuer Beginn liegt vor Vertrags-Ende"
                     )
                 } else {
                     EventValidationResult(
-                        validationId = event.eventId,
+                        commandId = event.commandId,
+                        aggregateId = event.aggregateId,
                         valid = true,
                         validationType = ValidationType.Gueltig,
                         exception = ""
@@ -59,21 +64,24 @@ class EventValidator {
             is EndeGeaendert -> {
                 if (vertrag == null) {
                     EventValidationResult(
-                        validationId = event.eventId,
+                        commandId = event.commandId,
+                        aggregateId = event.aggregateId,
                         valid = false,
                         validationType = ValidationType.Ungueltig,
                         exception = "Vertrag existiert nicht"
                     )
                 } else if (event.payload.ende.isBefore(vertrag.beginn)) {
                     EventValidationResult(
-                        validationId = event.eventId,
+                        commandId = event.commandId,
+                        aggregateId = event.aggregateId,
                         valid = false,
                         validationType = ValidationType.Ungueltig,
                         exception = "Neues Ende liegt vor Vertrags-Beginn"
                     )
                 } else {
                     EventValidationResult(
-                        validationId = event.eventId,
+                        commandId = event.commandId,
+                        aggregateId = event.aggregateId,
                         valid = true,
                         validationType = ValidationType.Gueltig,
                         exception = ""
@@ -82,7 +90,8 @@ class EventValidator {
             }
 
             else -> EventValidationResult(
-                validationId = "",
+                commandId = "",
+                aggregateId = "",
                 valid = false,
                 validationType = ValidationType.UngueltigeEingabe,
                 exception = "Unbekannter Fehler"
