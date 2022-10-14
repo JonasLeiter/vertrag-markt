@@ -36,7 +36,6 @@ class EventAggregator(
             topics.internalEvent,
             Consumed.with(Serdes.String(), JsonObjectSerde(serializer, Event::class.java))
         )
-
             .transformValues(
                 ValueTransformerWithKeySupplier {
                     object : ValueTransformerWithKey<String, Event, Triple<Vertrag?, Event?, EventValidationResult>> {
