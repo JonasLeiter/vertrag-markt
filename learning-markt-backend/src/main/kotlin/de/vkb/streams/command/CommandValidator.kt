@@ -1,5 +1,6 @@
 package de.vkb.streams.command
 
+import de.vkb.model.aggregate.Vertrag
 import de.vkb.model.command.AendereDatum
 import de.vkb.model.command.AendereOrt
 import de.vkb.model.command.Command
@@ -11,10 +12,10 @@ import java.time.LocalDate
 
 class CommandValidator{
 
-    fun validate(command: Command): CommandResult{
+    fun validateCommand(command: Command, vertrag: Vertrag?): CommandResult{
         return when(command) {
             is ErstelleMarkt -> {
-                val result = validate(command)
+                val result = validate(command, vertrag)
                 val event = MarktErstellt(
                     commandId = command.commandId,
                     payload = MarktErstelltPayload(
@@ -53,28 +54,37 @@ class CommandValidator{
                     commandId = command.commandId,
                     isValid = false,
                     aggregateIdentifier = command.aggregateIdentifier,
-                    message = "Unbekannter Fehler")
+                    message = "Unbekannter Command")
                 CommandResult(result, null)
             }
         }
     }
 
-    private fun validate(erstelleMarkt: ErstelleMarkt): CommandValidation {
+    private fun validate(erstelleMarkt: ErstelleMarkt, vertrag: Vertrag?): CommandValidation {
         val datum = erstelleMarkt.payload.datum
         val today = LocalDate.now()
 
         if(datum.isEqual(today) || datum.isBefore(today)){
-            return CommandValidation(
+            if(vertrag == null){
+                return CommandValidation(
+                    commandId = erstelleMarkt.commandId,
+                    isValid = false,
+                    aggregateIdentifier = erstelleMarkt.aggregateIdentifier,
+                    message = "Erstelle Markt Command ungültig - Unbekannter Vertrag")
+            } else{
+                return CommandValidation(
                     commandId = erstelleMarkt.commandId,
                     isValid = true,
                     aggregateIdentifier = erstelleMarkt.aggregateIdentifier,
-                    message = "Markt gültig")
+                    message = "ErstelleMarkt Command gültig")
+            }
+
         } else {
             return CommandValidation(
                 commandId = erstelleMarkt.commandId,
                 isValid = false,
                 aggregateIdentifier = erstelleMarkt.aggregateIdentifier,
-                message = "Markt ungültig - Datum liegt in der Zukunft")
+                message = "ErstelleMarkt Command ungültig - Datum liegt in der Zukunft")
         }
     }
 
@@ -87,13 +97,13 @@ class CommandValidator{
                     commandId = aendereDatum.commandId,
                     isValid = true,
                     aggregateIdentifier = aendereDatum.aggregateIdentifier,
-                    message = "Markt gültig")
+                    message = "AendereDatum Command gültig")
         } else {
             return CommandValidation(
                     commandId = aendereDatum.commandId,
                     isValid = false,
                     aggregateIdentifier = aendereDatum.aggregateIdentifier,
-                    message = "Markt ungültig - Datum liegt in der Zukunft")
+                    message = "AendereDatum Command ungültig - Datum liegt in der Zukunft")
         }
     }
 
@@ -102,6 +112,6 @@ class CommandValidator{
             commandId = aendereOrt.commandId,
             isValid = true,
             aggregateIdentifier = aendereOrt.aggregateIdentifier,
-            message = "Markt gültig")
+            message = "AendereOrt Command gültig")
     }
 }

@@ -11,25 +11,15 @@ import de.vkb.model.validation.EventValidation
 
 class EventValidator {
 
-    fun validateEvent(marktAggregate: Markt?, vertragAggregate: Vertrag?, event: Event): EventResult {
+    fun validateEvent(event: Event, marktAggregate: Markt?): EventResult {
         return when (event) {
             is MarktErstellt -> {
-                if (marktAggregate == null) {        
-                    if(vertragAggregate == null){
-                        val validation = EventValidation(
-                            commandId = event.commandId,
-                            isValid = false,
-                            aggregateIdentifier = event.aggregateIdentifier,
-                            message = "Markt-Event ungültig - Unbekannter Vertrag"
-                        )
-                        return EventResult(validation, null)
-                    }
-
+                if (marktAggregate == null) {
                     val validation = EventValidation(
                         commandId = event.commandId,
                         isValid = true,
                         aggregateIdentifier = event.aggregateIdentifier,
-                        message = "Markt-Event gültig"
+                        message = "MarktErstellt Event gültig"
                     )
                     val markt = Markt(
                         id = event.aggregateIdentifier,
@@ -43,7 +33,7 @@ class EventValidator {
                         commandId = event.commandId,
                         isValid = false,
                         aggregateIdentifier = event.aggregateIdentifier,
-                        message = "Markt-Event ungültig - Markt existiert bereits"
+                        message = "MarktErstellt Event ungültig - Markt existiert bereits"
                     )
                     EventResult(validation, null)
                 }
@@ -55,7 +45,7 @@ class EventValidator {
                         commandId = event.commandId,
                         isValid = false,
                         aggregateIdentifier = event.aggregateIdentifier,
-                        message = "Markt-Event ungültig - Markt nicht gefunden"
+                        message = "OrtGeandert Event ungültig - Markt nicht gefunden"
                     )
                     EventResult(validation, null)
                 } else {
@@ -63,7 +53,7 @@ class EventValidator {
                         commandId = event.commandId,
                         isValid = true,
                         aggregateIdentifier = event.aggregateIdentifier,
-                        message = "Markt-Event gültig"
+                        message = "OrtGeandert Event gültig"
                     )
                     val markt = marktAggregate.copy(ort = event.payload.ort)
                     EventResult(validation, markt)
@@ -76,7 +66,7 @@ class EventValidator {
                         commandId = event.commandId,
                         isValid = false,
                         aggregateIdentifier = event.aggregateIdentifier,
-                        message = "Markt-Event ungültig - Markt nicht gefunden"
+                        message = "DatumGeandert Event ungültig - Markt nicht gefunden"
                     )
                     EventResult(validation, null)
                 } else {
@@ -84,7 +74,7 @@ class EventValidator {
                         commandId = event.commandId,
                         isValid = true,
                         aggregateIdentifier = event.aggregateIdentifier,
-                        message = "Markt-Event gültig"
+                        message = "DatumGeandert Event gültig"
                     )
                     val markt = marktAggregate.copy(datum = event.payload.datum)
                     EventResult(validation, markt)
@@ -96,7 +86,7 @@ class EventValidator {
                     commandId = event.commandId,
                     isValid = true,
                     aggregateIdentifier = event.aggregateIdentifier,
-                    message = "Markt-Event ungültig - Unbekannter Fehler"
+                    message = "Unbekannter Event"
                 )
                 EventResult(validation, null)
             }

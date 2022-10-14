@@ -38,13 +38,6 @@ class EventAggregator(private val serializer: JsonObjectSerializer,
             )
         )
 
-        builder.addStateStore(
-            Stores.keyValueStoreBuilder(
-                Stores.persistentKeyValueStore(storeConfig.vertragStore),
-                Serdes.StringSerde(), JsonObjectSerde(serializer, Vertrag::class.java)
-            )
-        )
-
         val stream = builder.stream(
             topicConfig.internalEvent, Consumed.with(Serdes.String(), JsonObjectSerde(serializer, Event::class.java)
             )
@@ -52,30 +45,21 @@ class EventAggregator(private val serializer: JsonObjectSerializer,
             ValueTransformerWithKeySupplier {
                 object : ValueTransformerWithKey<String, Event, Pair<Event?, EventResult> > {
                     lateinit var stateStore: KeyValueStore<String, Markt>
-                    lateinit var vertragStore: ReadOnlyKeyValueStore<String, Vertrag>
 
                     override fun init(context: ProcessorContext) {
                         stateStore = context.getStateStore(storeConfig.stateStore)
-                        vertragStore = context.getStateStore(storeConfig.vertragStore)
                     }
 
 
                     override fun transform(readOnlyKey: String?, event: Event): Pair<Event?, EventResult> {
                         val markt: Markt? = stateStore[readOnlyKey]
-                        var vertrag: Vertrag? = null
 
-                        if(event is MarktErstellt){
-                            println(event.payload.vertragId)
-                            vertrag = vertragStore[event.payload.vertragId]
-                        }
-
-                        println("Vertrag ist $vertrag")
-                        val result: EventResult = EventValidator().validateEvent(markt, vertrag, event)
+                        val result: EventResult = EventValidator().validateEvent(event, markt)
 
                         val extEvent = if(result.validation.isValid){
                             stateStore.put(readOnlyKey, result.markt)
                             event
-                        } else{
+                        } else {
                             null
                         }
 
@@ -86,8 +70,7 @@ class EventAggregator(private val serializer: JsonObjectSerializer,
 
                 }
             },
-            storeConfig.stateStore,
-            storeConfig.vertragStore
+            storeConfig.stateStore
         )
 
         stream
@@ -104,35 +87,6 @@ class EventAggregator(private val serializer: JsonObjectSerializer,
             .filter{_, value -> value.second.markt != null}
             .map{key,value -> KeyValue(key, value.second.markt)}
             .to(topicConfig.state, Produced.with(Serdes.String(), JsonObjectSerde(serializer, Markt::class.java)))
-
-        buildVertragReader(builder)
-        return stream
-    }
-
-
-    private fun buildVertragReader(builder: ConfiguredStreamBuilder): KStream<String, Vertrag>{
-        val stream = builder.stream(
-            topicConfig.vertragState, Consumed.with(Serdes.String(), JsonObjectSerde(serializer, Vertrag::class.java))
-        ).transformValues(
-            ValueTransformerWithKeySupplier {
-                object : ValueTransformerWithKey<String, Vertrag, Vertrag> {
-                    lateinit var vertragStore: KeyValueStore<String, Vertrag>
-
-                    override fun init(context: ProcessorContext) {
-                        this.vertragStore = context.getStateStore(storeConfig.vertragStore)
-                    }
-
-                    override fun transform(key: String, vertrag: Vertrag): Vertrag {
-                        println("put vertrag $vertrag")
-                        vertragStore.put(key,vertrag)
-                        vertragStore.all().forEach { println("Value: $it") }
-                        return vertrag
-                    }
-
-                    override fun close() {}
-                }
-            }, storeConfig.vertragStore
-        )
 
         return stream
     }
