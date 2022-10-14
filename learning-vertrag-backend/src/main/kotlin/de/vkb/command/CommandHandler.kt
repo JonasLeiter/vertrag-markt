@@ -24,7 +24,7 @@ class CommandHandler(
 ) {
 
     @Singleton
-    fun createCommandStream(builder: ConfiguredStreamBuilder): KStream<String, *> {
+    fun createCommandStream(builder: ConfiguredStreamBuilder): KStream<String, Pair<Event?, CommandValidationResult>> {
 
         val stream = builder.stream(
             topics.command,
@@ -40,7 +40,6 @@ class CommandHandler(
                         override fun transform(readOnlyKey: String, command: Command): Pair<Event?, CommandValidationResult> {
 
                             val validationResult = commandValidator.validate(command)
-
 
                             return if (validationResult.valid) {
                                 when (command) {
