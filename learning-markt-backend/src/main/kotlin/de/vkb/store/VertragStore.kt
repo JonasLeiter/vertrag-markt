@@ -1,7 +1,6 @@
 package de.vkb.store
 
 import de.vkb.config.StoreConfig
-import de.vkb.model.aggregate.Markt
 import de.vkb.model.aggregate.Vertrag
 import io.micronaut.configuration.kafka.streams.InteractiveQueryService
 import jakarta.inject.Inject

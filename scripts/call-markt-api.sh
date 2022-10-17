@@ -9,6 +9,8 @@ do
   
 
 	vertragId=$(jq -r '.id' <<< "$vertragResponse")
+	
+	sleep 1
 
 	curl --header "Content-Type: application/json" \
   		--request PUT \
@@ -20,7 +22,7 @@ do
   		--data '{"vertragId": "'$vertragId'","ende":"2023-09-01"}' \
   		http://localhost:8082/vertrag/ende
   		
-  	sleep 5
+  	sleep 1
   		
 	response=$(curl --header "Content-Type: application/json" \
  		--request POST \
@@ -28,6 +30,8 @@ do
   		http://localhost:8080/markt)
   
 	id=$(jq -r '.aggregateId' <<< "$response")
+	
+	sleep 1
 
 	curl --header "Content-Type: application/json" \
   		--request PUT \

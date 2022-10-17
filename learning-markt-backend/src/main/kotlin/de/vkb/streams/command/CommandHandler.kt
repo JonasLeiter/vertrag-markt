@@ -6,6 +6,7 @@ import de.vkb.model.aggregate.Vertrag
 import de.vkb.model.command.Command
 import de.vkb.model.command.ErstelleMarkt
 import de.vkb.model.event.Event
+import de.vkb.model.result.CommandResult
 import de.vkb.model.validation.CommandValidation
 import io.micronaut.configuration.kafka.serde.JsonObjectSerde
 import io.micronaut.configuration.kafka.streams.ConfiguredStreamBuilder
@@ -15,6 +16,7 @@ import jakarta.inject.Singleton
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.KeyValue
 import org.apache.kafka.streams.kstream.*
+import org.apache.kafka.streams.processor.Processor
 import org.apache.kafka.streams.processor.ProcessorContext
 import org.apache.kafka.streams.state.KeyValueStore
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore
@@ -23,7 +25,8 @@ import org.apache.kafka.streams.state.Stores
 @Factory
 class CommandHandler(private val serializer: JsonObjectSerializer,
                      private val topicConfig: TopicConfig,
-                     private val storeConfig: StoreConfig
+                     private val storeConfig: StoreConfig,
+                     private val validator: CommandValidator
 ) {
 
     @Singleton
@@ -39,79 +42,93 @@ class CommandHandler(private val serializer: JsonObjectSerializer,
 
         val stream = builder.stream(
             topicConfig.command, Consumed.with(Serdes.String(), JsonObjectSerde(serializer, Command::class.java)
-            )
-        ).transformValues(
-            ValueTransformerWithKeySupplier {
-                object : ValueTransformerWithKey<String, Command, Pair<Event?, CommandValidation>> {
-                    lateinit var vertragStore: ReadOnlyKeyValueStore<String, Vertrag>
+            ))
 
-                    override fun init(context: ProcessorContext) {
-                        vertragStore = context.getStateStore(storeConfig.vertragStore)
-                    }
+        val createStream = createStream(stream)
+        val updateStream = updateStream(stream)
 
-                    override fun transform(readOnlyKey: String?, command: Command):  Pair<Event?, CommandValidation> {
-                        var vertrag: Vertrag? = null
-
-                        if(command is ErstelleMarkt){
-                            vertrag = vertragStore[command.payload.vertragId]
-                        }
-
-                        val commandResult = CommandValidator().validateCommand(command, vertrag)
-
-                        val intEvent = if(commandResult.validation.isValid) {
-                            commandResult.event
-                        } else{
-                            null
-                        }
-
-                        return Pair(intEvent, commandResult.validation)
-                    }
-
-                    override fun close() {}
-
-                }
-            }, storeConfig.vertragStore)
-
-            stream
-                .filter { _, value -> value.first != null }
-                .map { _, value -> KeyValue(value.first?.aggregateIdentifier, value.first as Event) }
-                .to(
-                topicConfig.internalEvent, Produced.with(Serdes.String(), JsonObjectSerde(serializer, Event::class.java))
-                )
-
-            stream
-                .map { _, value -> KeyValue(value.second.commandId, value.second) }
-                .to(
-                    topicConfig.validation, Produced.with(Serdes.String(), JsonObjectSerde(serializer, CommandValidation::class.java))
-                )
+        writeToTopic(createStream)
+        writeToTopic(updateStream)
 
         return stream
     }
 
-    private fun buildVertragStore(builder: ConfiguredStreamBuilder): KStream<String, Vertrag>{
-        val stream = builder.stream(
+    private fun createStream(stream: KStream<String, Command>): KStream<String, CommandResult>{
+        return stream.filter{_, value -> value is ErstelleMarkt }
+            .map{_, value -> KeyValue((value as ErstelleMarkt).payload.vertragId, value)}
+            .repartition(Repartitioned.with(Serdes.String(), JsonObjectSerde(serializer, ErstelleMarkt::class.java)))
+            .transformValues(
+                ValueTransformerWithKeySupplier {
+                    object : ValueTransformerWithKey<String, ErstelleMarkt, CommandResult> {
+                        lateinit var vertragStore: ReadOnlyKeyValueStore<String, Vertrag>
+
+                        override fun init(context: ProcessorContext) {
+                            vertragStore = context.getStateStore(storeConfig.vertragStore)
+                        }
+
+                        override fun transform(readOnlyKey: String?, command: ErstelleMarkt): CommandResult {
+                            val vertrag: Vertrag? = vertragStore[command.payload.vertragId]
+
+                            return validator.validateCreateCommand(command, vertrag)
+                        }
+
+                        override fun close() {}
+
+                    }
+                }, storeConfig.vertragStore)
+    }
+
+    private fun updateStream(stream: KStream<String, Command>): KStream<String, CommandResult> {
+        return stream.filter{_, value -> value !is ErstelleMarkt }
+            .transformValues(
+                ValueTransformerWithKeySupplier {
+                    object : ValueTransformerWithKey<String, Command, CommandResult> {
+                        override fun init(context: ProcessorContext) {}
+
+                        override fun transform(readOnlyKey: String?, command: Command): CommandResult {
+                            return validator.validateUpdateCommand(command)
+                        }
+
+                        override fun close() {}
+
+                    }
+                })
+    }
+
+    private fun writeToTopic(stream: KStream<String, CommandResult>){
+        stream
+            .map { _, value -> KeyValue(value.validation.aggregateIdentifier, value.validation) }
+            .to(
+                topicConfig.validation, Produced.with(Serdes.String(), JsonObjectSerde(serializer, CommandValidation::class.java))
+            )
+
+        stream
+            .filter { _, value -> value.event != null }
+            .map { _, value -> KeyValue(value.event?.aggregateIdentifier, value.event as Event) }
+            .to(
+                topicConfig.internalEvent, Produced.with(Serdes.String(), JsonObjectSerde(serializer, Event::class.java))
+            )
+    }
+
+    private fun buildVertragStore(builder: ConfiguredStreamBuilder){
+        builder.stream(
             topicConfig.vertragState, Consumed.with(Serdes.String(), JsonObjectSerde(serializer, Vertrag::class.java))
-        ).transformValues(
-            ValueTransformerWithKeySupplier {
-                object : ValueTransformerWithKey<String, Vertrag, Vertrag> {
+        ).process(
+            {
+                object: Processor<String, Vertrag> {
                     lateinit var vertragStore: KeyValueStore<String, Vertrag>
 
                     override fun init(context: ProcessorContext) {
                         this.vertragStore = context.getStateStore(storeConfig.vertragStore)
                     }
 
-                    override fun transform(key: String, vertrag: Vertrag): Vertrag {
-                        println("put vertrag $vertrag")
+                    override fun process(key: String, vertrag: Vertrag) {
                         vertragStore.put(key,vertrag)
-                        vertragStore.all().forEach { println("Value: $it") }
-                        return vertrag
                     }
 
                     override fun close() {}
                 }
             }, storeConfig.vertragStore
         )
-
-        return stream
     }
 }
