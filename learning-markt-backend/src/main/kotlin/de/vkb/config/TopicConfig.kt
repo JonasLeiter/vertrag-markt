@@ -25,4 +25,8 @@ interface TopicConfig {
     @get:Bindable(defaultValue = "markt-state")
     @get:NotBlank
     val state: String
+
+    @get:Bindable(defaultValue = "vertrag-state")
+    @get:NotBlank
+    val vertragState: String
 }

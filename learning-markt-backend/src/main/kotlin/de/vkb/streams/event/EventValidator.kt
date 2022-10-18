@@ -7,86 +7,75 @@ import de.vkb.model.event.MarktErstellt
 import de.vkb.model.event.OrtGeandert
 import de.vkb.model.result.EventResult
 import de.vkb.model.validation.EventValidation
+import jakarta.inject.Singleton
 
+@Singleton
 class EventValidator {
 
-    fun validateEvent(marktAggregate: Markt?, event: Event): EventResult {
+    fun validateEvent(event: Event, marktAggregate: Markt?): EventResult {
+        var validation = EventValidation(
+            commandId = event.commandId,
+            isValid = false,
+            aggregateIdentifier = event.aggregateIdentifier,
+            message = "Unbekannter Event"
+        )
+
         return when (event) {
             is MarktErstellt -> {
                 if (marktAggregate == null) {
-                    val validation = EventValidation(
-                        commandId = event.commandId,
+                    validation = validation.copy(
                         isValid = true,
-                        aggregateIdentifier = event.aggregateIdentifier,
-                        message = "Markt-Event gültig"
+                        message = "MarktErstellt Event gültig"
                     )
                     val markt = Markt(
                         id = event.aggregateIdentifier,
                         ort = event.payload.ort,
-                        datum = event.payload.datum
+                        datum = event.payload.datum,
+                        vertragId = event.payload.vertragId
                     )
-                    EventResult(validation, markt)
+                    EventResult(validation, markt, event)
                 } else {
-                    val validation = EventValidation(
-                        commandId = event.commandId,
-                        isValid = false,
-                        aggregateIdentifier = event.aggregateIdentifier,
-                        message = "Markt-Event ungültig - Markt existiert bereits"
+                    validation = validation.copy(
+                        message = "MarktErstellt Event ungültig - Markt existiert bereits"
                     )
-                    EventResult(validation, null)
+                    EventResult(validation, null, null)
                 }
             }
 
             is OrtGeandert -> {
                 if (marktAggregate == null) {
-                    val validation = EventValidation(
-                        commandId = event.commandId,
-                        isValid = false,
-                        aggregateIdentifier = event.aggregateIdentifier,
-                        message = "Markt-Event ungültig - Markt nicht gefunden"
+                    validation = validation.copy(
+                        message = "OrtGeandert Event ungültig - Markt nicht gefunden"
                     )
-                    EventResult(validation, null)
+                    EventResult(validation, null, null)
                 } else {
-                    val validation = EventValidation(
-                        commandId = event.commandId,
+                    validation = validation.copy(
                         isValid = true,
-                        aggregateIdentifier = event.aggregateIdentifier,
-                        message = "Markt-Event gültig"
+                        message = "OrtGeandert Event gültig"
                     )
                     val markt = marktAggregate.copy(ort = event.payload.ort)
-                    EventResult(validation, markt)
+                    EventResult(validation, markt, event)
                 }
             }
 
             is DatumGeandert -> {
                 if (marktAggregate == null) {
-                    val validation = EventValidation(
-                        commandId = event.commandId,
-                        isValid = false,
-                        aggregateIdentifier = event.aggregateIdentifier,
-                        message = "Markt-Event ungültig - Markt nicht gefunden"
+                    validation = validation.copy(
+                        message = "DatumGeandert Event ungültig - Markt nicht gefunden"
                     )
-                    EventResult(validation, null)
+                    EventResult(validation, null, null)
                 } else {
-                    val validation = EventValidation(
-                        commandId = event.commandId,
+                    validation = validation.copy(
                         isValid = true,
-                        aggregateIdentifier = event.aggregateIdentifier,
-                        message = "Markt-Event gültig"
+                        message = "DatumGeandert Event gültig"
                     )
                     val markt = marktAggregate.copy(datum = event.payload.datum)
-                    EventResult(validation, markt)
+                    EventResult(validation, markt, event)
                 }
             }
 
             else -> {
-                val validation = EventValidation(
-                    commandId = event.commandId,
-                    isValid = true,
-                    aggregateIdentifier = event.aggregateIdentifier,
-                    message = "Markt-Event ungültig - Unbekannter Fehler"
-                )
-                EventResult(validation, null)
+                EventResult(validation, null, null)
             }
         }
     }

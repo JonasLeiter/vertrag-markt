@@ -9,7 +9,7 @@ netty:
       max-order: 3
 kafka:
   bootstrap:
-    servers: tier.laser.internal:32092
+    servers: localhost:32092
   state:
     dir: ${STATE_DIR:/tmp/kafka-streams/learning-vertrag-backend}
 

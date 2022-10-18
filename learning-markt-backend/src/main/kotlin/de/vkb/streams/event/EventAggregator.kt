@@ -10,6 +10,7 @@ import io.micronaut.configuration.kafka.serde.JsonObjectSerde
 import io.micronaut.configuration.kafka.streams.ConfiguredStreamBuilder
 import io.micronaut.context.annotation.Factory
 import io.micronaut.json.JsonObjectSerializer
+import jakarta.inject.Named
 import jakarta.inject.Singleton
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.KeyValue
@@ -21,11 +22,13 @@ import org.apache.kafka.streams.state.Stores
 @Factory
 class EventAggregator(private val serializer: JsonObjectSerializer,
                       private val topicConfig: TopicConfig,
-                      private val storeConfig: StoreConfig
+                      private val storeConfig: StoreConfig,
+                      private val validator: EventValidator
 ) {
 
     @Singleton
-    fun aggregateEvents(builder: ConfiguredStreamBuilder): KStream<String, *>{
+    @Named("event-aggregator")
+    fun aggregateEvents(@Named("event-aggregator") builder: ConfiguredStreamBuilder): KStream<String, *>{
         builder.addStateStore(
             Stores.keyValueStoreBuilder(
                 Stores.persistentKeyValueStore(storeConfig.stateStore),
@@ -38,7 +41,7 @@ class EventAggregator(private val serializer: JsonObjectSerializer,
             )
         ).transformValues(
             ValueTransformerWithKeySupplier {
-                object : ValueTransformerWithKey<String, Event, Pair<Event?, EventResult> > {
+                object : ValueTransformerWithKey<String, Event, EventResult> {
                     lateinit var stateStore: KeyValueStore<String, Markt>
 
                     override fun init(context: ProcessorContext) {
@@ -46,18 +49,18 @@ class EventAggregator(private val serializer: JsonObjectSerializer,
                     }
 
 
-                    override fun transform(readOnlyKey: String?, event: Event): Pair<Event?, EventResult> {
+                    override fun transform(readOnlyKey: String?, event: Event): EventResult {
                         val markt: Markt? = stateStore[readOnlyKey]
-                        val result: EventResult = EventValidator().validateEvent(markt, event)
+                        println("Markt ist: $markt for event: ${event.javaClass} with key $readOnlyKey")
 
-                        val extEvent = if(result.validation.isValid){
+                        val result = validator.validateEvent(event, markt)
+
+                        if(result.validation.isValid) {
+                            println("Adding markt: ${result.markt}")
                             stateStore.put(readOnlyKey, result.markt)
-                            event
-                        } else{
-                            null
                         }
 
-                        return Pair(extEvent, result)
+                        return result
                     }
 
                     override fun close() {}
@@ -68,20 +71,19 @@ class EventAggregator(private val serializer: JsonObjectSerializer,
         )
 
         stream
-            .filter{ _, value -> value.first != null }
-            .map{ key, value -> KeyValue(key, value.first) }
+            .filter{ _, value -> value.event != null }
+            .map{ key, value -> KeyValue(key, value.event) }
             .to(topicConfig.externalEvent, Produced.with(Serdes.String(), JsonObjectSerde(serializer, Event::class.java)))
 
 
         stream
-            .map{ _, value -> KeyValue(value.second.validation.commandId, value.second.validation) }
+            .map{ _, value -> KeyValue(value.validation.aggregateIdentifier, value.validation) }
             .to(topicConfig.validation, Produced.with(Serdes.String(), JsonObjectSerde(serializer, EventValidation::class.java)))
 
         stream
-            .filter{_, value -> value.second.markt != null}
-            .map{key,value -> KeyValue(key, value.second.markt)}
+            .filter{_, value -> value.markt != null}
+            .map{key,value -> KeyValue(key, value.markt)}
             .to(topicConfig.state, Produced.with(Serdes.String(), JsonObjectSerde(serializer, Markt::class.java)))
-
 
         return stream
     }

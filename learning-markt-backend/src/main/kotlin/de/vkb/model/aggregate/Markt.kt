@@ -7,5 +7,6 @@ import java.time.LocalDate
 data class Markt(
     val id: String,
     val ort: String,
-    val datum: LocalDate
+    val datum: LocalDate,
+    val vertragId: String
 )
