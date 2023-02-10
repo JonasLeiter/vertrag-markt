@@ -16,5 +16,20 @@
       <option name="name" value="MavenRepo" />
       <option name="url" value="https://repo.maven.apache.org/maven2/" />
     </remote-repository>
+    <remote-repository>
+      <option name="id" value="VKB-GitHub" />
+      <option name="name" value="VKB-GitHub" />
+      <option name="url" value="https://maven.pkg.github.com/versicherungskammer/shared-libs" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="VKB-GitHub" />
+      <option name="name" value="VKB-GitHub" />
+      <option name="url" value="https://maven.pkg.github.com/versicherungskammer/shared-event-sourcing-utils" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="VKB-GitHub" />
+      <option name="name" value="VKB-GitHub" />
+      <option name="url" value="https://maven.pkg.github.com/versicherungskammer/" />
+    </remote-repository>
   </component>
 </project>

@@ -12,6 +12,14 @@ group = "de.vkb"
 
 repositories {
     mavenCentral()
+    maven {
+        name = "VKB-GitHub"
+        url = "https://maven.pkg.github.com/versicherungskammer/shared-libs"
+        credentials {
+            username = project.findProperty("vkb.github.registry.user") ?: System.getenv("GITHUB_ACTOR") ?: "nobody"
+            password = project.findProperty("vkb.github.registry.key") ?: System.getenv("GITHUB_MAVEN_TOKEN")
+        }
+    }
 }
 
 dependencies {
@@ -26,6 +34,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinVersion}")
     runtimeOnly("ch.qos.logback:logback-classic")
     implementation("io.micronaut:micronaut-validation")
+    implementation("de.vkb.laser:event-sourcing-utils:main-349f94a")
 
     runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
 
