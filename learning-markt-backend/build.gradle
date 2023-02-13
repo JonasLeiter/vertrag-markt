@@ -24,6 +24,7 @@ repositories {
 
 dependencies {
     kapt("io.micronaut:micronaut-http-validation")
+    implementation("io.micronaut:micronaut-inject-java")
     implementation("io.micronaut:micronaut-http-client")
     implementation("io.micronaut:micronaut-jackson-databind")
     implementation("io.micronaut.kafka:micronaut-kafka")
@@ -34,7 +35,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinVersion}")
     runtimeOnly("ch.qos.logback:logback-classic")
     implementation("io.micronaut:micronaut-validation")
-    implementation("de.vkb.laser:event-sourcing-utils:main-349f94a")
+    implementation("de.vkb.laser:event-sourcing-utils:feature-TIERLEBEN-1294-5a9a3fd")
 
     runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
 
