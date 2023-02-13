@@ -7,7 +7,7 @@ import de.vkb.models.Vertrag
 import jakarta.inject.Singleton
 
 @Singleton
-class CreatedValidator {
+class VertragErstelltValidator {
     fun validate(event: VertragErstellt, vertragAggregate: Vertrag?): VertragErstelltResult {
         var validation = EventValidation(
             commandId = event.commandId,

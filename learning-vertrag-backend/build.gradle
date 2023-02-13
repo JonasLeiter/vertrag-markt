@@ -12,6 +12,14 @@ group = "de.vkb"
 
 repositories {
     mavenCentral()
+    maven {
+        name = "VKB-GitHub"
+        url = "https://maven.pkg.github.com/versicherungskammer/shared-libs"
+        credentials {
+            username = project.findProperty("vkb.github.registry.user") ?: System.getenv("GITHUB_ACTOR") ?: "nobody"
+            password = project.findProperty("vkb.github.registry.key") ?: System.getenv("GITHUB_MAVEN_TOKEN")
+        }
+    }
 }
 
 dependencies {
@@ -26,6 +34,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinVersion}")
     runtimeOnly("ch.qos.logback:logback-classic")
     implementation("io.micronaut:micronaut-validation")
+    implementation("de.vkb.laser:event-sourcing-utils:feature-TIERLEBEN-1294-5a9a3fd")
 
     runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
 
@@ -36,18 +45,18 @@ application {
     mainClass.set("de.vkb.ApplicationKt")
 }
 java {
-    sourceCompatibility = JavaVersion.toVersion("11")
+    sourceCompatibility = JavaVersion.toVersion("17")
 }
 
 tasks {
     compileKotlin {
         kotlinOptions {
-            jvmTarget = "11"
+            jvmTarget = "17"
         }
     }
     compileTestKotlin {
         kotlinOptions {
-            jvmTarget = "11"
+            jvmTarget = "17"
         }
     }
 }

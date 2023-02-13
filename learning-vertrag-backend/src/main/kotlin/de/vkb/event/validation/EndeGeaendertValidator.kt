@@ -1,14 +1,14 @@
 package de.vkb.event.validation
 
 import de.vkb.common.ValidationType
-import de.vkb.event.VertragErstelltResult
+import de.vkb.event.EndeGeaendertResult
 import de.vkb.event.events.EndeGeaendert
 import de.vkb.models.Vertrag
 import jakarta.inject.Singleton
 
 @Singleton
-class EndChangedValidator {
-    fun validate(event: EndeGeaendert, vertragAggregate: Vertrag?): VertragErstelltResult {
+class EndeGeaendertValidator {
+    fun validate(event: EndeGeaendert, vertragAggregate: Vertrag?): EndeGeaendertResult {
         var validation = EventValidation(
             commandId = event.commandId,
             aggregateId = event.aggregateId,
@@ -22,13 +22,13 @@ class EndChangedValidator {
                 validationType = ValidationType.Ungueltig,
                 exception = "Vertrag existiert nicht"
             )
-            VertragErstelltResult(null, null, validation)
+            EndeGeaendertResult(null, null, validation)
         } else if (event.payload.ende.isBefore(vertragAggregate.beginn)) {
             validation = validation.copy(
                 validationType = ValidationType.Ungueltig,
                 exception = "Neues Ende liegt vor Vertrags-Beginn"
             )
-            VertragErstelltResult(null, null, validation)
+            EndeGeaendertResult(null, null, validation)
         } else {
             validation = validation.copy(
                 valid = true,
@@ -38,7 +38,7 @@ class EndChangedValidator {
             val vertrag = vertragAggregate.copy(
                 ende = event.payload.ende
             )
-            VertragErstelltResult(event, vertrag, validation)
+            EndeGeaendertResult(event, vertrag, validation)
         }
     }
 }

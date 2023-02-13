@@ -1,6 +1,7 @@
-package de.vkb.event.events
+package de.vkb.event
 
-import de.vkb.event.EventValidation
+import de.vkb.event.events.Event
+import de.vkb.event.validation.EventValidation
 import de.vkb.kafka.StoreConfig
 import de.vkb.laser.es.config.impl.CqrsTopologyDescriptionBuilder
 import de.vkb.laser.es.config.impl.DefaultSerdeFactories
@@ -9,22 +10,25 @@ import de.vkb.laser.es.processor.event.PickyEventAggregator
 import de.vkb.models.Vertrag
 import de.vkb.kafka.TopicConfig
 import de.vkb.laser.es.helpers.JacksonSerdeFactoryBean
+import jakarta.inject.Named
 import jakarta.inject.Singleton
 
 @Singleton
 class VertragEventSourcing(
+//    commandHandlers: Collection<PickyCommandHandler<String, String, CommandContext, MyCommandClass, MyEventClass, MyFeedbackClass>>,
     eventAggregators: Collection<PickyEventAggregator<String, String, Event, Vertrag, EventValidation>>,
     topicConfig: TopicConfig,
     storeConfig: StoreConfig,
-    jacksonSerdes: JacksonSerdeFactoryBean
+    jacksonSerdes: JacksonSerdeFactoryBean,
 ) {
+//    val commandHandler: DelegatingCommandHandler<String, String, CommandContext, MyCommandClass, MyEventClass, MyFeedbackClass>
+    @Named("event-aggregator")
     val eventAggregator: DelegatingEventAggregator<String, String, Event, Vertrag, EventValidation>
     val topologyDescription = CqrsTopologyDescriptionBuilder()
         .correlationIdSerdeFactory(DefaultSerdeFactories.Strings)
         .aggregateIdSerdeFactory(DefaultSerdeFactories.Strings)
         .internalEventTopicName(topicConfig.internalEvent)
         .externalEventTopicName(topicConfig.externalEvent)
-        // TODO: wird die eigene Factory dann überhaupt verwendet?
         .eventSerdeFactory(jacksonSerdes.of(Event::class.java))
         .aggregateStoreName(storeConfig.vertragStore)
         .aggregateSerdeFactory(jacksonSerdes.of(Vertrag::class.java))
@@ -38,6 +42,7 @@ class VertragEventSourcing(
         .buildEventAggregatorTopologyDescription()
 
     init {
+//        commandHandler = DelegatingCommandHandler(commandHandlers)
         eventAggregator = DelegatingEventAggregator(eventAggregators)
     }
 }

@@ -1,7 +1,7 @@
 package de.vkb.event
 
 import de.vkb.event.events.*
-import de.vkb.event.validation.CreatedValidator
+import de.vkb.event.validation.VertragErstelltValidator
 import de.vkb.event.validation.EventValidation
 import de.vkb.laser.es.dto.GenericEventAggregatorResult
 import de.vkb.laser.es.processor.event.StringKeyCastingEventAggregator
@@ -13,7 +13,7 @@ import jakarta.inject.Singleton
 // -> validator aufsplitten
 // lib arbeitet nach vertical slice prinzip (data class und zugehöriger service gehören zusammen)
 @Singleton
-class CreatedAggregator(private val validator: CreatedValidator)
+class VertragErstelltAggregator(private val validator: VertragErstelltValidator)
     :StringKeyCastingEventAggregator<VertragErstellt, VertragErstellt, Vertrag, EventValidation>
     (VertragErstellt::class.java, Vertrag::class.java) {
 

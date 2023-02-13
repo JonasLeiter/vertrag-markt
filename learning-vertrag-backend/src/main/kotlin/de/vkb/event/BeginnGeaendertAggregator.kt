@@ -1,7 +1,7 @@
 package de.vkb.event
 
 import de.vkb.event.events.*
-import de.vkb.event.validation.BeginChangedValidator
+import de.vkb.event.validation.BeginnGeaendertValidator
 import de.vkb.event.validation.EventValidation
 import de.vkb.laser.es.dto.GenericEventAggregatorResult
 import de.vkb.laser.es.processor.event.StringKeyCastingEventAggregator
@@ -13,14 +13,14 @@ import jakarta.inject.Singleton
 // -> validator aufsplitten
 // lib arbeitet nach vertical slice prinzip (data class und zugehöriger service gehören zusammen)
 @Singleton
-class BeginChangedAggregator(private val validator: BeginChangedValidator)
-    :StringKeyCastingEventAggregator<Event, Event, Vertrag, EventValidation>
-    (Event::class.java, Vertrag::class.java) {
+class BeginnGeaendertAggregator(private val validator: BeginnGeaendertValidator)
+    :StringKeyCastingEventAggregator<BeginnGeaendert, BeginnGeaendert, Vertrag, EventValidation>
+    (BeginnGeaendert::class.java, Vertrag::class.java) {
 
     override fun processCasted(
-        event: Event,
+        event: BeginnGeaendert,
         aggregate: Vertrag?
-    ): GenericEventAggregatorResult<Event, Vertrag, EventValidation> {
-        return validator.validate(event as BeginnGeaendert, aggregate)
+    ): GenericEventAggregatorResult<BeginnGeaendert, Vertrag, EventValidation> {
+        return validator.validate(event, aggregate)
     }
 }

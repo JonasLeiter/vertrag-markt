@@ -12,6 +12,16 @@ kafka:
     servers: localhost:32092
   state:
     dir: ${STATE_DIR:/tmp/kafka-streams/learning-vertrag-backend}
+  streams:
+    default:
+      application.id: learning-vertrag-command-handler
+      processing.guarantee: exactly_once
+      sasl.jaas.config: null
+
+    event-aggregator:
+      application.id: learning-vertrag-event-aggregator
+      processing.guarantee: exactly_once
+      sasl.jaas.config: null
 
 topics:
   command: learning-vertrag-command

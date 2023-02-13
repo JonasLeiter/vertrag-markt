@@ -1,4 +1,4 @@
-package de.vkb.event
+package de.vkb.event.validation
 
 import de.vkb.common.ValidationResult
 import de.vkb.common.ValidationType
