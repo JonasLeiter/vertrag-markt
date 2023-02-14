@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# execute script in terminal providing number of partitions as parameter
+# e.g.: ./create-topics.sh 2
+
 topics=("learning-vertrag-command" "learning-vertrag-internal-event" "learning-vertrag-validation" "learning-vertrag-external-event" "learning-vertrag-state" "learning-markt-command" "learning-markt-internal-event" "learning-markt-validation" "learning-markt-external-event" "learning-markt-state")
 
 for topic in "${topics[@]}"; do
