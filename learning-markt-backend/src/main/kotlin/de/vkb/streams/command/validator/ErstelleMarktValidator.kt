@@ -1,10 +1,10 @@
 package de.vkb.streams.command.validator
 
+import de.vkb.laser.es.dto.impl.CommandHandlerResult
 import de.vkb.model.aggregate.Vertrag
 import de.vkb.model.command.ErstelleMarkt
 import de.vkb.model.event.MarktErstellt
 import de.vkb.model.event.MarktErstelltPayload
-import de.vkb.model.result.command.ErstelleMarktResult
 import de.vkb.model.validation.CommandValidation
 import jakarta.inject.Singleton
 import java.time.LocalDate
@@ -12,7 +12,7 @@ import java.time.LocalDate
 @Singleton
 class ErstelleMarktValidator {
 
-    fun validateErstelleMarkt(command: ErstelleMarkt, vertrag: Vertrag?): ErstelleMarktResult {
+    fun validateErstelleMarkt(command: ErstelleMarkt, vertrag: Vertrag?): CommandHandlerResult<MarktErstellt, CommandValidation> {
         var validation = CommandValidation(
             commandId = command.commandId,
             hasErrors = true,
@@ -43,9 +43,9 @@ class ErstelleMarktValidator {
         }
 
         return if(validation.hasErrors){
-            ErstelleMarktResult(validation, null)
+            CommandHandlerResult(event = null, feedback = validation)
         } else {
-            ErstelleMarktResult(null, event)
+            CommandHandlerResult(event = event, feedback = null)
         }
 
     } }
