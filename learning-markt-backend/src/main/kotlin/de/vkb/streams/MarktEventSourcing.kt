@@ -5,7 +5,6 @@ import de.vkb.config.TopicConfig
 import de.vkb.laser.es.config.impl.CqrsTopologyDescriptionBuilder
 import de.vkb.laser.es.config.impl.DefaultSerdeFactories
 import de.vkb.laser.es.helpers.JacksonSerdeFactoryBean
-import de.vkb.laser.es.kafka.EventSourcingStreamFactory
 import de.vkb.laser.es.model.CommandContext
 import de.vkb.laser.es.processor.command.DelegatingCommandHandler
 import de.vkb.laser.es.processor.command.PickyCommandHandler
