@@ -1,7 +1,9 @@
-package de.vkb.event
+package de.vkb.event.streams
 
+import de.vkb.command.commands.Command
+import de.vkb.command.validations.CommandValidation
 import de.vkb.event.events.Event
-import de.vkb.event.validation.EventValidation
+import de.vkb.event.validations.EventValidation
 import de.vkb.kafka.StoreConfig
 import de.vkb.laser.es.config.impl.CqrsTopologyDescriptionBuilder
 import de.vkb.laser.es.config.impl.DefaultSerdeFactories
@@ -10,21 +12,39 @@ import de.vkb.laser.es.processor.event.PickyEventAggregator
 import de.vkb.models.Vertrag
 import de.vkb.kafka.TopicConfig
 import de.vkb.laser.es.helpers.JacksonSerdeFactoryBean
+import de.vkb.laser.es.model.CommandContext
+import de.vkb.laser.es.processor.command.DelegatingCommandHandler
+import de.vkb.laser.es.processor.command.PickyCommandHandler
 import jakarta.inject.Named
 import jakarta.inject.Singleton
 
 @Singleton
 class VertragEventSourcing(
-//    commandHandlers: Collection<PickyCommandHandler<String, String, CommandContext, MyCommandClass, MyEventClass, MyFeedbackClass>>,
+    commandHandlers: Collection<PickyCommandHandler<String, String, CommandContext, Command, Event, CommandValidation>>,
     eventAggregators: Collection<PickyEventAggregator<String, String, Event, Vertrag, EventValidation>>,
     topicConfig: TopicConfig,
     storeConfig: StoreConfig,
     jacksonSerdes: JacksonSerdeFactoryBean,
 ) {
-//    val commandHandler: DelegatingCommandHandler<String, String, CommandContext, MyCommandClass, MyEventClass, MyFeedbackClass>
+    @Named("default")
+    val commandHandler: DelegatingCommandHandler<String, String, CommandContext, Command, Event, CommandValidation>
     @Named("event-aggregator")
     val eventAggregator: DelegatingEventAggregator<String, String, Event, Vertrag, EventValidation>
-    val topologyDescription = CqrsTopologyDescriptionBuilder()
+
+    val commandHandlerTopologyDescription = CqrsTopologyDescriptionBuilder()
+        .correlationIdSerdeFactory(DefaultSerdeFactories.Strings)
+        .aggregateIdSerdeFactory(DefaultSerdeFactories.Strings)
+        .commandTopicName(topicConfig.command)
+        .commandSerdeFactory(jacksonSerdes.of(Command::class.java))
+        .internalEventTopicName(topicConfig.internalEvent)
+        .eventSerdeFactory(jacksonSerdes.of(Event::class.java))
+        .feedbackTopicName(topicConfig.validation)
+        .feedbackSerdeFactory(jacksonSerdes.of(CommandValidation::class.java))
+        .correlationIdFromCommand { cmd: Command -> cmd.commandId }
+        .aggregateIdFromEvent { evt: Event -> evt.aggregateId }
+        .buildCommandHandlerTopologyDescription()
+
+    val eventAggregateTopologyDescription = CqrsTopologyDescriptionBuilder()
         .correlationIdSerdeFactory(DefaultSerdeFactories.Strings)
         .aggregateIdSerdeFactory(DefaultSerdeFactories.Strings)
         .internalEventTopicName(topicConfig.internalEvent)
@@ -42,7 +62,7 @@ class VertragEventSourcing(
         .buildEventAggregatorTopologyDescription()
 
     init {
-//        commandHandler = DelegatingCommandHandler(commandHandlers)
+        commandHandler = DelegatingCommandHandler(commandHandlers)
         eventAggregator = DelegatingEventAggregator(eventAggregators)
     }
 }

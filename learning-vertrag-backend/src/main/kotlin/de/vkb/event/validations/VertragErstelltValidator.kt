@@ -1,27 +1,29 @@
-package de.vkb.event.validation
+package de.vkb.event.validations
 
 import de.vkb.common.ValidationType
-import de.vkb.event.VertragErstelltResult
 import de.vkb.event.events.VertragErstellt
+import de.vkb.laser.es.dto.impl.EventAggregatorResult
 import de.vkb.models.Vertrag
 import jakarta.inject.Singleton
 
 @Singleton
 class VertragErstelltValidator {
-    fun validate(event: VertragErstellt, vertragAggregate: Vertrag?): VertragErstelltResult {
+    fun validate(event: VertragErstellt, vertragAggregate: Vertrag?): EventAggregatorResult<VertragErstellt, Vertrag, EventValidation> {
         var validation = EventValidation(
             commandId = event.commandId,
             aggregateId = event.aggregateId,
             valid = false,
             validationType = ValidationType.UngueltigeEingabe,
-            exception = "Unbekannter Fehler"
+            exception = "Unbekannter Fehler",
+            hasErrors = true
         )
 
         return if (vertragAggregate == null) {
             validation = validation.copy(
                 valid = true,
                 validationType = ValidationType.Gueltig,
-                exception = ""
+                exception = "",
+                hasErrors = false
             )
             val vertrag = Vertrag(
                 id = event.aggregateId,
@@ -29,13 +31,13 @@ class VertragErstelltValidator {
                 beginn = event.payload.beginn,
                 ende = event.payload.ende
             )
-            VertragErstelltResult(event, vertrag, validation)
+            EventAggregatorResult(event, vertrag, validation)
         } else {
             validation = validation.copy(
                 validationType = ValidationType.Ungueltig,
                 exception = "Vertrag existiert bereits"
             )
-            VertragErstelltResult(null, null, validation)
+            EventAggregatorResult(null, null, validation)
         }
     }
 }

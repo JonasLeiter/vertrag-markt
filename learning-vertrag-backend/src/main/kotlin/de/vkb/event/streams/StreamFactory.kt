@@ -1,4 +1,4 @@
-package de.vkb.event
+package de.vkb.event.streams
 
 import de.vkb.laser.es.kafka.EventSourcingStreamFactory
 import io.micronaut.configuration.kafka.streams.ConfiguredStreamBuilder
@@ -12,14 +12,22 @@ class StreamFactory(private val vertragEventSourcing: VertragEventSourcing) {
     private val eventSourcingStreamFactory = EventSourcingStreamFactory(replayMode = false)
 
     @Singleton
+    fun buildCommandHandlerTopology(
+        @Named("default") builder: ConfiguredStreamBuilder
+    ): KStream<String, *> =
+        eventSourcingStreamFactory.commandHandler(
+            builder = builder,
+            topologyDescription = vertragEventSourcing.commandHandlerTopologyDescription,
+            commandHandler = vertragEventSourcing.commandHandler
+        )
+
+    @Singleton
     fun buildEventAggregatorTopology(
-        @Named("event-aggregator") builder: ConfiguredStreamBuilder,
-        // wird nicht mehr benutzt -> readme update
-//        eventAggregator: DelegatingEventAggregator<String, String, Event, Vertrag, EventValidation>
+        @Named("event-aggregator") builder: ConfiguredStreamBuilder
     ): KStream<String, *> =
         eventSourcingStreamFactory.eventAggregator(
             builder = builder,
-            topologyDescription = vertragEventSourcing.topologyDescription,
+            topologyDescription = vertragEventSourcing.eventAggregateTopologyDescription,
             eventAggregator = vertragEventSourcing.eventAggregator,
             skipFeedbackStoreCreation = false
         )

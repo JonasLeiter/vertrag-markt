@@ -1,10 +1,7 @@
-package de.vkb.event
+package de.vkb.event.results
 
-import de.vkb.event.events.BeginnGeaendert
 import de.vkb.event.events.EndeGeaendert
-import de.vkb.event.events.Event
-import de.vkb.event.events.VertragErstellt
-import de.vkb.event.validation.EventValidation
+import de.vkb.event.validations.EventValidation
 import de.vkb.laser.es.dto.GenericEventAggregatorResult
 import de.vkb.models.Vertrag
 
