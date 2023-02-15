@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 interface ValidationResult {
     val commandId: String
     val aggregateId: String
-    val valid: Boolean
+    val isValid: Boolean
     val validationType: ValidationType
     val exception: String
 }

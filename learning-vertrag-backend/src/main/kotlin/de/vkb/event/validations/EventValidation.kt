@@ -7,7 +7,7 @@ import de.vkb.laser.es.model.Feedback
 data class EventValidation(
     override val commandId: String,
     override val aggregateId: String,
-    override val valid: Boolean,
+    override val isValid: Boolean,
     override val validationType: ValidationType,
     override val exception: String,
     override val hasErrors: Boolean

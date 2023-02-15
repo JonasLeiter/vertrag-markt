@@ -4,9 +4,9 @@ import de.vkb.command.commands.AendereEnde
 import de.vkb.command.commands.Command
 import de.vkb.command.validations.AendereEndeValidator
 import de.vkb.command.validations.CommandValidation
-import de.vkb.event.events.EndeGeaendert
-import de.vkb.event.events.Event
+import de.vkb.event.events.*
 import de.vkb.laser.es.dto.GenericCommandHandlerResult
+import de.vkb.laser.es.dto.impl.CommandHandlerResult
 import de.vkb.laser.es.processor.command.ContextlessStringKeyCastingCommandHandler
 import jakarta.inject.Singleton
 
@@ -18,6 +18,17 @@ class AendereEndeHandler(private val validator: AendereEndeValidator) :
     override fun processCasted(
         command: AendereEnde
     ): GenericCommandHandlerResult<EndeGeaendert, CommandValidation> {
-        return validator.validate(command)
+        val validation = validator.validate(command)
+        return if (validation.isValid) CommandHandlerResult(
+            EndeGeaendert(
+                commandId = command.commandId,
+                aggregateId = command.aggregateId,
+                payload = EndeGeaendertPayload(
+                    vertragId = command.aggregateId,
+                    ende = command.payload.ende
+                )
+            ), null
+        )
+        else CommandHandlerResult(null, validation)
     }
 }

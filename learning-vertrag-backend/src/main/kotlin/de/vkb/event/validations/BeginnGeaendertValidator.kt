@@ -1,7 +1,6 @@
 package de.vkb.event.validations
 
 import de.vkb.common.ValidationType
-import de.vkb.event.results.BeginnGeaendertResult
 import de.vkb.event.events.BeginnGeaendert
 import de.vkb.laser.es.dto.impl.EventAggregatorResult
 import de.vkb.models.Vertrag
@@ -13,7 +12,7 @@ class BeginnGeaendertValidator {
         var validation = EventValidation(
             commandId = event.commandId,
             aggregateId = event.aggregateId,
-            valid = false,
+            isValid = false,
             validationType = ValidationType.UngueltigeEingabe,
             exception = "Unbekannter Fehler",
             hasErrors = true
@@ -34,7 +33,7 @@ class BeginnGeaendertValidator {
         } else {
             validation = validation.copy(
                 validationType = ValidationType.Gueltig,
-                valid = true,
+                isValid = true,
                 exception = "",
                 hasErrors = false
             )

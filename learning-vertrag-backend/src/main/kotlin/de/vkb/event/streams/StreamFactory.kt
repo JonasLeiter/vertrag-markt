@@ -31,4 +31,5 @@ class StreamFactory(private val vertragEventSourcing: VertragEventSourcing) {
             eventAggregator = vertragEventSourcing.eventAggregator,
             skipFeedbackStoreCreation = false
         )
+
 }

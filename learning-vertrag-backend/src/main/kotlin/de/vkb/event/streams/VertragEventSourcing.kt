@@ -26,9 +26,7 @@ class VertragEventSourcing(
     storeConfig: StoreConfig,
     jacksonSerdes: JacksonSerdeFactoryBean,
 ) {
-    @Named("default")
     val commandHandler: DelegatingCommandHandler<String, String, CommandContext, Command, Event, CommandValidation>
-    @Named("event-aggregator")
     val eventAggregator: DelegatingEventAggregator<String, String, Event, Vertrag, EventValidation>
 
     val commandHandlerTopologyDescription = CqrsTopologyDescriptionBuilder()

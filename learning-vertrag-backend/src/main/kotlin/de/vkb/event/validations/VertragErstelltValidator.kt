@@ -12,7 +12,7 @@ class VertragErstelltValidator {
         var validation = EventValidation(
             commandId = event.commandId,
             aggregateId = event.aggregateId,
-            valid = false,
+            isValid = false,
             validationType = ValidationType.UngueltigeEingabe,
             exception = "Unbekannter Fehler",
             hasErrors = true
@@ -20,7 +20,7 @@ class VertragErstelltValidator {
 
         return if (vertragAggregate == null) {
             validation = validation.copy(
-                valid = true,
+                isValid = true,
                 validationType = ValidationType.Gueltig,
                 exception = "",
                 hasErrors = false

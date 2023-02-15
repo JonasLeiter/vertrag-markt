@@ -32,7 +32,8 @@ class CommandHandlerFactory(
             topicConfig.vertragState, Consumed.with(Serdes.String(), JsonObjectSerde(serializer, Vertrag::class.java))
         )
 
-        val inputStream = eventSourcingStreams.commandInputStream(builder, marktEventSourcing.commandTopologyDescription)
+        val inputStream =
+            eventSourcingStreams.commandInputStream(builder, marktEventSourcing.commandTopologyDescription)
 
         val updateStream = eventSourcingStreams.commandHandler(
             builder = builder,
@@ -48,7 +49,7 @@ class CommandHandlerFactory(
             commandHandler = marktEventSourcing.updateCommandHandler
         )
 
-        return eventSourcingStreams.commandHandler(
+        val createStream = eventSourcingStreams.commandHandler(
             builder = builder,
             inputStream = inputStream,
             topologyDescription = marktEventSourcing.commandTopologyDescription.builder()
@@ -58,13 +59,19 @@ class CommandHandlerFactory(
                         .leftJoin(
                             vertragTable,
                             { _, command -> command.payload.vertragId },
-                            { command, vertrag -> Pair(command, vertrag) })
+                            { command, vertrag -> CommandAndVertrag(command, vertrag) })
                 }
-                .correlationIdFromCommand { pair -> pair.first.commandId }
+                .correlationIdFromCommand { pair -> pair.command.commandId }
                 .aggregateIdFromEvent { evt: Event -> evt.aggregateIdentifier }
                 .buildCommandHandlerTopologyDescription(),
             commandHandler = marktEventSourcing.createCommandHandler,
             skipFeedbackStoreCreation = true
         )
+
+        return updateStream.mapValues { value -> value.command }.merge(
+                createStream.mapValues { value -> value.command.command }
+            )
     }
 }
+
+data class CommandAndVertrag(val command: ErstelleMarkt, val vertrag: Vertrag)
